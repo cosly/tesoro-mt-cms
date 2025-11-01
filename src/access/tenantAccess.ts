@@ -6,37 +6,18 @@ import type { Access, AccessArgs } from 'payload'
  */
 
 /**
- * Get the viewing tenant from cookies (for super-admins)
+ * Get the viewing tenant from query parameters (for super-admins)
  */
 function getViewingTenant(req: any): string | null {
   try {
-    // Try multiple ways to access cookies
+    // Check for ?viewingTenant=xxx query parameter
+    const viewingTenant = req.query?.viewingTenant
 
-    // Method 1: Check req.cookies (Payload may parse this)
-    if (req.cookies && req.cookies['viewing-tenant']) {
-      console.log('[TenantAccess] Found viewing-tenant in req.cookies:', req.cookies['viewing-tenant'])
-      return req.cookies['viewing-tenant']
+    if (viewingTenant && typeof viewingTenant === 'string') {
+      return viewingTenant
     }
 
-    // Method 2: Parse from cookie header
-    const cookieHeader = req.headers?.cookie
-    if (!cookieHeader) {
-      console.log('[TenantAccess] No cookie header found')
-      return null
-    }
-
-    console.log('[TenantAccess] Cookie header:', cookieHeader)
-
-    const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie: string) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    }, {})
-
-    const viewingTenant = cookies['viewing-tenant'] || null
-    console.log('[TenantAccess] Parsed viewing-tenant:', viewingTenant)
-
-    return viewingTenant
+    return null
   } catch (error) {
     console.error('[TenantAccess] Error getting viewing tenant:', error)
     return null

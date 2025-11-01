@@ -20,63 +20,46 @@ export const TenantSwitcher: React.FC = () => {
     return null
   }
 
-  // Fetch tenants and current viewing tenant on mount
+  // Fetch tenants and get current viewing tenant from URL on mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTenants = async () => {
       try {
         // Fetch all tenants
-        const tenantsResponse = await fetch('/api/tenants?limit=100', {
+        const response = await fetch('/api/tenants?limit=100', {
           credentials: 'include',
         })
-        const tenantsData = await tenantsResponse.json()
-        setTenants(tenantsData.docs || [])
-
-        // Fetch current viewing tenant
-        const viewingResponse = await fetch('/api/set-viewing-tenant', {
-          credentials: 'include',
-        })
-        const viewingData = await viewingResponse.json()
-        if (viewingData.success && viewingData.viewingTenant) {
-          setCurrentTenant(viewingData.viewingTenant)
-        } else {
-          setCurrentTenant('all')
-        }
+        const data = await response.json()
+        setTenants(data.docs || [])
       } catch (error) {
-        console.error('Failed to fetch data:', error)
-        setCurrentTenant('all')
+        console.error('Failed to fetch tenants:', error)
       }
     }
 
-    fetchData()
+    // Get viewing tenant from URL query parameter
+    const urlParams = new URLSearchParams(window.location.search)
+    const viewingTenant = urlParams.get('viewingTenant')
+    setCurrentTenant(viewingTenant || 'all')
+
+    fetchTenants()
   }, [])
 
   // Handle tenant switch
-  const handleTenantSwitch = async (tenantId: string) => {
+  const handleTenantSwitch = (tenantId: string) => {
     setLoading(true)
-    try {
-      // Call API to set viewing tenant cookie
-      const response = await fetch('/api/set-viewing-tenant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ tenantId }),
-      })
 
-      const data = await response.json()
+    // Build new URL with viewingTenant parameter
+    const url = new URL(window.location.href)
 
-      if (data.success) {
-        // Reload page to apply new tenant filter
-        window.location.reload()
-      } else {
-        console.error('Failed to set viewing tenant:', data.error)
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Failed to switch tenant:', error)
-      setLoading(false)
+    if (tenantId === 'all') {
+      // Remove the parameter
+      url.searchParams.delete('viewingTenant')
+    } else {
+      // Set the parameter
+      url.searchParams.set('viewingTenant', tenantId)
     }
+
+    // Navigate to new URL (this will reload the page with the new filter)
+    window.location.href = url.toString()
   }
 
   // Find current tenant object
