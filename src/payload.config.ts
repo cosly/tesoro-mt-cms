@@ -21,9 +21,6 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    components: {
-      beforeNavLinks: ['@/components/TenantSwitcher#TenantSwitcher'],
-    },
   },
   collections: [Tenants, Users, Media, Homepage],
   editor: lexicalEditor(),
