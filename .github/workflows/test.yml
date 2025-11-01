@@ -103,9 +103,9 @@ jobs:
 
       - name: Create admin user for E2E tests
         run: |
-          cat > create-admin.mjs << 'EOF'
+          cat > create-admin.ts << 'EOF'
           import { getPayload } from 'payload'
-          import config from './src/payload.config.js'
+          import config from '@payload-config'
 
           const payload = await getPayload({ config: await config })
 
@@ -124,7 +124,7 @@ jobs:
 
           process.exit(0)
           EOF
-          node create-admin.mjs
+          pnpm exec tsx create-admin.ts
         env:
           DATABASE_URI: mongodb://localhost:27017/tesoro-cms-e2e-test
           PAYLOAD_SECRET: test-secret-key-for-ci
