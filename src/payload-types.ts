@@ -70,6 +70,7 @@ export interface Config {
     tenants: Tenant;
     users: User;
     media: Media;
+    homepage: Homepage;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    homepage: HomepageSelect<false> | HomepageSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -213,6 +215,104 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Manage your homepage content (one per tenant)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  id: string;
+  /**
+   * The tenant this homepage belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Internal title for reference
+   */
+  title: string;
+  hero: {
+    /**
+     * Main headline displayed on the homepage
+     */
+    headline: string;
+    /**
+     * Supporting text below the headline
+     */
+    subheadline?: string | null;
+    /**
+     * Hero background image or featured image
+     */
+    heroImage?: (string | null) | Media;
+    ctaButton?: {
+      /**
+       * Button text (e.g., "Get Started")
+       */
+      text?: string | null;
+      /**
+       * Button link URL
+       */
+      url?: string | null;
+      style?: ('primary' | 'secondary' | 'outline') | null;
+    };
+  };
+  /**
+   * Rich content for the homepage body
+   */
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Highlight key features or benefits
+   */
+  features?:
+    | {
+        /**
+         * Icon or image for this feature
+         */
+        icon?: (string | null) | Media;
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  seo?: {
+    /**
+     * Page title for search engines (60 chars recommended)
+     */
+    metaTitle?: string | null;
+    /**
+     * Page description for search engines (160 chars recommended)
+     */
+    metaDescription?: string | null;
+    /**
+     * Image for social media sharing (Open Graph)
+     */
+    metaImage?: (string | null) | Media;
+    /**
+     * Comma-separated keywords
+     */
+    keywords?: string | null;
+  };
+  /**
+   * Publishing status
+   */
+  status: 'draft' | 'published';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -247,6 +347,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'homepage';
+        value: string | Homepage;
       } | null)
     | ({
         relationTo: 'payload-kv';
@@ -364,6 +468,48 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  hero?:
+    | T
+    | {
+        headline?: T;
+        subheadline?: T;
+        heroImage?: T;
+        ctaButton?:
+          | T
+          | {
+              text?: T;
+              url?: T;
+              style?: T;
+            };
+      };
+  content?: T;
+  features?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        metaImage?: T;
+        keywords?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
