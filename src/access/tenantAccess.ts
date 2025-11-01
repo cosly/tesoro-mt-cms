@@ -6,12 +6,13 @@ import type { Access, AccessArgs } from 'payload'
  */
 
 /**
- * Get the viewing tenant from query parameters (for super-admins)
+ * Get the viewing tenant from request header (for super-admins)
+ * The TenantSwitcher component sends this header with every request
  */
 function getViewingTenant(req: any): string | null {
   try {
-    // Check for ?viewingTenant=xxx query parameter
-    const viewingTenant = req.query?.viewingTenant
+    // Check for X-Viewing-Tenant header
+    const viewingTenant = req.headers?.['x-viewing-tenant']
 
     if (viewingTenant && typeof viewingTenant === 'string') {
       return viewingTenant

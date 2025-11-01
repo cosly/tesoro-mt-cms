@@ -23,6 +23,7 @@ export default buildConfig({
     },
     components: {
       beforeNavLinks: ['@/components/TenantSwitcher#TenantSwitcher'],
+      providers: ['@/components/TenantContextProvider#TenantContextProvider'],
     },
   },
   collections: [Tenants, Users, Media, Homepage],

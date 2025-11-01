@@ -20,7 +20,7 @@ export const TenantSwitcher: React.FC = () => {
     return null
   }
 
-  // Fetch tenants and get current viewing tenant from URL on mount
+  // Fetch tenants and get current viewing tenant from localStorage on mount
   useEffect(() => {
     const fetchTenants = async () => {
       try {
@@ -35,9 +35,8 @@ export const TenantSwitcher: React.FC = () => {
       }
     }
 
-    // Get viewing tenant from URL query parameter
-    const urlParams = new URLSearchParams(window.location.search)
-    const viewingTenant = urlParams.get('viewingTenant')
+    // Get viewing tenant from localStorage
+    const viewingTenant = localStorage.getItem('viewing-tenant')
     setCurrentTenant(viewingTenant || 'all')
 
     fetchTenants()
@@ -47,19 +46,16 @@ export const TenantSwitcher: React.FC = () => {
   const handleTenantSwitch = (tenantId: string) => {
     setLoading(true)
 
-    // Build new URL with viewingTenant parameter
-    const url = new URL(window.location.href)
-
     if (tenantId === 'all') {
-      // Remove the parameter
-      url.searchParams.delete('viewingTenant')
+      // Clear localStorage
+      localStorage.removeItem('viewing-tenant')
     } else {
-      // Set the parameter
-      url.searchParams.set('viewingTenant', tenantId)
+      // Save to localStorage
+      localStorage.setItem('viewing-tenant', tenantId)
     }
 
-    // Navigate to new URL (this will reload the page with the new filter)
-    window.location.href = url.toString()
+    // Reload page to apply filter
+    window.location.reload()
   }
 
   // Find current tenant object
