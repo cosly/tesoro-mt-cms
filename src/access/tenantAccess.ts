@@ -10,9 +10,22 @@ import type { Access, AccessArgs } from 'payload'
  */
 function getViewingTenant(req: any): string | null {
   try {
-    // Check for viewing-tenant cookie
+    // Try multiple ways to access cookies
+
+    // Method 1: Check req.cookies (Payload may parse this)
+    if (req.cookies && req.cookies['viewing-tenant']) {
+      console.log('[TenantAccess] Found viewing-tenant in req.cookies:', req.cookies['viewing-tenant'])
+      return req.cookies['viewing-tenant']
+    }
+
+    // Method 2: Parse from cookie header
     const cookieHeader = req.headers?.cookie
-    if (!cookieHeader) return null
+    if (!cookieHeader) {
+      console.log('[TenantAccess] No cookie header found')
+      return null
+    }
+
+    console.log('[TenantAccess] Cookie header:', cookieHeader)
 
     const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie: string) => {
       const [key, value] = cookie.trim().split('=')
@@ -20,8 +33,12 @@ function getViewingTenant(req: any): string | null {
       return acc
     }, {})
 
-    return cookies['viewing-tenant'] || null
+    const viewingTenant = cookies['viewing-tenant'] || null
+    console.log('[TenantAccess] Parsed viewing-tenant:', viewingTenant)
+
+    return viewingTenant
   } catch (error) {
+    console.error('[TenantAccess] Error getting viewing tenant:', error)
     return null
   }
 }
