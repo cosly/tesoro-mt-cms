@@ -101,6 +101,35 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Create admin user for E2E tests
+        run: |
+          cat > create-admin.mjs << 'EOF'
+          import { getPayload } from 'payload'
+          import config from './src/payload.config.js'
+
+          const payload = await getPayload({ config: await config })
+
+          try {
+            await payload.create({
+              collection: 'users',
+              data: {
+                email: 'admin@example.com',
+                password: 'admin123',
+              },
+            })
+            console.log('✓ Admin user created')
+          } catch (e) {
+            console.log('Admin user may already exist:', e.message)
+          }
+
+          process.exit(0)
+          EOF
+          node create-admin.mjs
+        env:
+          DATABASE_URI: mongodb://localhost:27017/tesoro-cms-e2e-test
+          PAYLOAD_SECRET: test-secret-key-for-ci
+          NODE_ENV: test
+
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
@@ -108,6 +137,8 @@ jobs:
           PAYLOAD_SECRET: test-secret-key-for-ci
           NODE_ENV: test
           CI: true
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: admin123
 
       - name: Upload Playwright report
         if: failure()
