@@ -15,11 +15,6 @@ export const TenantSwitcher: React.FC = () => {
   const [currentTenant, setCurrentTenant] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Only show to super-admins
-  if (!user?.isSuperAdmin) {
-    return null
-  }
-
   // Fetch tenants and get current viewing tenant from cookie on mount
   useEffect(() => {
     const fetchTenants = async () => {
@@ -64,6 +59,11 @@ export const TenantSwitcher: React.FC = () => {
     const value = `; ${document.cookie}`
     const parts = value.split(`; ${name}=`)
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    return null
+  }
+
+  // Only show to super-admins
+  if (!user?.isSuperAdmin) {
     return null
   }
 

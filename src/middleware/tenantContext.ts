@@ -36,18 +36,18 @@ export function extractTenantFromHost(host: string): string | null {
  */
 export function getCurrentTenant(req: PayloadRequest): string | null {
   // Already set in context
-  if (req.context?.tenant) {
+  if (req.context?.tenant && typeof req.context.tenant === 'string') {
     return req.context.tenant
   }
 
   // Check custom header first (for API clients)
-  const tenantHeader = req.headers?.['x-tenant-id']
+  const tenantHeader = req.headers?.get('x-tenant-id')
   if (tenantHeader && typeof tenantHeader === 'string') {
     return tenantHeader
   }
 
   // Extract from subdomain
-  const host = req.headers?.host
+  const host = req.headers?.get('host')
   if (!host) {
     return null
   }

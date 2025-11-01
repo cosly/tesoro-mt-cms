@@ -38,7 +38,7 @@ export const Homepage: CollectionConfig = {
       // Prevent multiple homepages per tenant
       async ({ req, data, operation }) => {
         if (operation === 'create') {
-          const tenantId = data.tenant || req.user?.tenant
+          const tenantId = data?.tenant || req.user?.tenant
 
           if (!tenantId) {
             throw new Error('Tenant is required')
@@ -96,6 +96,7 @@ export const Homepage: CollectionConfig = {
           name: 'headline',
           type: 'text',
           required: true,
+          localized: true,
           admin: {
             description: 'Main headline displayed on the homepage',
           },
@@ -103,6 +104,7 @@ export const Homepage: CollectionConfig = {
         {
           name: 'subheadline',
           type: 'textarea',
+          localized: true,
           admin: {
             description: 'Supporting text below the headline',
           },
@@ -123,6 +125,7 @@ export const Homepage: CollectionConfig = {
             {
               name: 'text',
               type: 'text',
+              localized: true,
               admin: {
                 description: 'Button text (e.g., "Get Started")',
               },
@@ -153,6 +156,7 @@ export const Homepage: CollectionConfig = {
       name: 'content',
       type: 'richText',
       label: 'Main Content',
+      localized: true,
       admin: {
         description: 'Rich content for the homepage body',
       },
@@ -178,11 +182,13 @@ export const Homepage: CollectionConfig = {
           name: 'title',
           type: 'text',
           required: true,
+          localized: true,
         },
         {
           name: 'description',
           type: 'textarea',
           required: true,
+          localized: true,
         },
       ],
     },
@@ -195,6 +201,7 @@ export const Homepage: CollectionConfig = {
         {
           name: 'metaTitle',
           type: 'text',
+          localized: true,
           admin: {
             description: 'Page title for search engines (60 chars recommended)',
           },
@@ -202,6 +209,7 @@ export const Homepage: CollectionConfig = {
         {
           name: 'metaDescription',
           type: 'textarea',
+          localized: true,
           admin: {
             description: 'Page description for search engines (160 chars recommended)',
           },
@@ -217,6 +225,7 @@ export const Homepage: CollectionConfig = {
         {
           name: 'keywords',
           type: 'text',
+          localized: true,
           admin: {
             description: 'Comma-separated keywords',
           },

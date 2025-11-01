@@ -48,9 +48,9 @@ export const Tenants: CollectionConfig = {
       admin: {
         description: 'Subdomain for this tenant (e.g., "tenant1" for tenant1.app.com)',
       },
-      validate: (value) => {
+      validate: (value: string | null | undefined) => {
         // Validate subdomain format
-        if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(value)) {
+        if (!value || !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(value)) {
           return 'Domain must be lowercase alphanumeric with hyphens only'
         }
         return true
