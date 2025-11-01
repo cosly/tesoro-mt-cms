@@ -20,7 +20,7 @@ export const TenantSwitcher: React.FC = () => {
     return null
   }
 
-  // Fetch tenants and get current viewing tenant from localStorage on mount
+  // Fetch tenants and get current viewing tenant from cookie on mount
   useEffect(() => {
     const fetchTenants = async () => {
       try {
@@ -35,8 +35,8 @@ export const TenantSwitcher: React.FC = () => {
       }
     }
 
-    // Get viewing tenant from localStorage
-    const viewingTenant = localStorage.getItem('viewing-tenant')
+    // Get viewing tenant from cookie
+    const viewingTenant = getCookie('viewing-tenant')
     setCurrentTenant(viewingTenant || 'all')
 
     fetchTenants()
@@ -47,15 +47,24 @@ export const TenantSwitcher: React.FC = () => {
     setLoading(true)
 
     if (tenantId === 'all') {
-      // Clear localStorage
-      localStorage.removeItem('viewing-tenant')
+      // Clear cookie
+      document.cookie = 'viewing-tenant=; path=/; max-age=0'
     } else {
-      // Save to localStorage
-      localStorage.setItem('viewing-tenant', tenantId)
+      // Save to cookie (7 days expiration)
+      const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString()
+      document.cookie = `viewing-tenant=${tenantId}; path=/; expires=${expires}`
     }
 
     // Reload page to apply filter
     window.location.reload()
+  }
+
+  // Helper to get cookie value
+  function getCookie(name: string): string | null {
+    const value = `; ${document.cookie}`
+    const parts = value.split(`; ${name}=`)
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    return null
   }
 
   // Find current tenant object
