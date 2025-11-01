@@ -1,0 +1,134 @@
+import type { Access, AccessArgs } from 'payload'
+
+/**
+ * Access control factory for tenant-scoped collections
+ * Super-admins can see all, regular users only their tenant's data
+ */
+
+export const tenantRead: Access = ({ req: { user } }) => {
+  // Super admins see everything
+  if (user?.isSuperAdmin) {
+    return true
+  }
+
+  // Regular users only see their tenant's data
+  if (user?.tenant) {
+    return {
+      tenant: {
+        equals: user.tenant,
+      },
+    }
+  }
+
+  // Not logged in or no tenant
+  return false
+}
+
+export const tenantCreate: Access = ({ req: { user } }) => {
+  // Must be logged in with a tenant
+  return !!(user && user.tenant)
+}
+
+export const tenantUpdate: Access = ({ req: { user } }) => {
+  // Super admins can update anything
+  if (user?.isSuperAdmin) {
+    return true
+  }
+
+  // Regular users can only update their tenant's data
+  if (user?.tenant) {
+    return {
+      tenant: {
+        equals: user.tenant,
+      },
+    }
+  }
+
+  return false
+}
+
+export const tenantDelete: Access = ({ req: { user } }) => {
+  // Super admins can delete anything
+  if (user?.isSuperAdmin) {
+    return true
+  }
+
+  // Regular users can only delete their tenant's data
+  if (user?.tenant) {
+    return {
+      tenant: {
+        equals: user.tenant,
+      },
+    }
+  }
+
+  return false
+}
+
+/**
+ * Admin-only access (within tenant)
+ * Only tenant admins and super admins can perform action
+ */
+export const tenantAdminOnly: Access = ({ req: { user } }) => {
+  // Super admins can do anything
+  if (user?.isSuperAdmin) {
+    return true
+  }
+
+  // Must be admin role within their tenant
+  if (user?.tenant && user?.role === 'admin') {
+    return {
+      tenant: {
+        equals: user.tenant,
+      },
+    }
+  }
+
+  return false
+}
+
+/**
+ * Role-based access within tenant
+ * @param roles - Array of allowed roles (e.g., ['admin', 'editor'])
+ */
+export function tenantRoleAccess(roles: string[]): Access {
+  return ({ req: { user } }) => {
+    // Super admins can do anything
+    if (user?.isSuperAdmin) {
+      return true
+    }
+
+    // Check if user has required role
+    if (user?.tenant && user?.role && roles.includes(user.role)) {
+      return {
+        tenant: {
+          equals: user.tenant,
+        },
+      }
+    }
+
+    return false
+  }
+}
+
+/**
+ * Public read, tenant-scoped write
+ * Useful for collections like Media that need public access
+ */
+export const publicReadTenantWrite = {
+  read: () => true,
+  create: tenantCreate,
+  update: tenantUpdate,
+  delete: tenantDelete,
+}
+
+/**
+ * Full tenant isolation
+ * All operations are tenant-scoped
+ */
+export const fullTenantIsolation = {
+  read: tenantRead,
+  create: tenantCreate,
+  update: tenantUpdate,
+  delete: tenantDelete,
+}
