@@ -2,6 +2,59 @@
 
 This document defines the testing approach for the Tesoro CMS project, focusing on **lightweight but robust tests** with emphasis on critical user flows.
 
+## 🚨 Important: Test Branch Strategy
+
+**Tests live ONLY in development branches, NOT in main.**
+
+### Branch Strategy
+
+- **Main Branch**: Production-ready code only, NO test files or configurations
+- **Feature/Dev Branches**: Include all test files, configurations, and workflows
+- **PR Validation**: Tests run automatically on PRs to main (from the feature branch)
+- **Auto-Cleanup**: When code is merged to main, test files are automatically removed
+
+### Why This Approach?
+
+1. **Clean Production**: Main branch stays lean and production-focused
+2. **Full Validation**: PRs are still validated with complete test suites
+3. **Developer Flexibility**: Feature branches have all testing tools available
+4. **Automated**: No manual cleanup needed, GitHub Actions handles it
+
+### What Gets Removed from Main
+
+After merge to main, these are automatically cleaned up:
+
+- `tests/` directory
+- `playwright.config.ts`
+- `vitest.config.mts`
+- `.husky/` directory
+- `TESTING.md` (this file)
+- `.github/workflows/test.yml`
+- Test-related package.json scripts and dependencies
+
+### Working with This Strategy
+
+**When creating a feature branch:**
+
+```bash
+git checkout -b feature/my-feature
+# Tests are already here, start coding and testing
+```
+
+**Before creating a PR:**
+
+```bash
+pnpm test  # Make sure all tests pass
+git push origin feature/my-feature
+# Create PR - tests will run automatically
+```
+
+**After merge to main:**
+
+- GitHub Actions automatically removes test files from main
+- Your feature branch keeps all test files for future reference
+- Create new feature branches from main (tests will be added from dev branch or recreated)
+
 ## Test Philosophy
 
 **Pragmatic Testing (60-70% coverage)**
@@ -282,23 +335,31 @@ node --inspect-brk ./node_modules/.bin/vitest run tests/int/users.int.spec.ts
 
 See `.github/workflows/test.yml` for automated test execution.
 
+**Test Execution Strategy:**
+
+- ✅ Tests run on **PR to main** (validates before merge)
+- ✅ Tests run on **pushes to feature/dev branches**
+- ❌ Tests do **NOT run on main branch** (no test files there)
+- ✅ **Nightly tests** on feature branches only
+
 **PR Requirements:**
 
-- All integration tests pass
-- Critical E2E tests pass
+- All integration tests pass (from feature branch)
+- Critical E2E tests pass (from feature branch)
 - No `test.only` or `test.skip` in committed code
+- Tests must exist and run successfully before merge
 
-**Pre-commit Hook:**
+**Pre-commit Hook (Feature Branches Only):**
 
 - Runs fast integration tests (<30s)
 - Lints test files
 - Prevents commits with test focus
 
-**Nightly Tests:**
+**Post-Merge Cleanup:**
 
-- Full E2E suite including slower tests
-- Visual regression tests (if configured)
-- Performance benchmarks
+- Automatic removal of test files from main
+- Keeps main branch clean and production-ready
+- See `.github/workflows/cleanup-main.yml`
 
 ## Admin Panel Test Checklist
 

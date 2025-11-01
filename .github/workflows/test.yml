@@ -1,10 +1,14 @@
 name: Tests
 
 on:
+  # Tests run on PRs to main (validates changes before merge)
   pull_request:
     branches: [main]
+  # Tests run on pushes to non-main branches only
   push:
-    branches: [main]
+    branches-ignore:
+      - main
+  # Nightly tests on dev/feature branches
   schedule:
     # Nightly tests at 2 AM UTC
     - cron: '0 2 * * *'
@@ -121,10 +125,10 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # Optional: Nightly full test suite (only runs on schedule)
+  # Optional: Nightly full test suite (only runs on schedule for non-main branches)
   nightly-full-suite:
     name: Nightly Full Test Suite
-    if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule' && github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

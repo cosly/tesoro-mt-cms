@@ -172,9 +172,18 @@ Memory is increased for builds (`--max-old-space-size=8000`) to handle large CMS
 
 ## Testing Strategy
 
+**⚠️ Important: Tests live ONLY in feature/dev branches, NOT in main branch.**
+
 This project follows a **pragmatic testing approach** targeting 60-70% coverage with focus on critical user flows.
 
-### Test Types
+### Branch Strategy
+
+- **Main Branch**: NO test files (production-ready code only)
+- **Feature/Dev Branches**: Include complete test suite
+- **PR Validation**: Tests run on PRs to main (from feature branch)
+- **Auto-Cleanup**: Test files removed automatically after merge to main
+
+### Test Types (Available in Feature Branches)
 
 1. **Integration Tests** (`tests/int/**/*.int.spec.ts`)
    - Payload API operations (CRUD, hooks, access control)
@@ -207,13 +216,17 @@ This project follows a **pragmatic testing approach** targeting 60-70% coverage 
 
 ### CI/CD
 
-Tests run automatically:
+Tests run automatically on feature/dev branches:
 
-- **On PR**: All tests must pass before merge
-- **Pre-commit**: Fast integration tests only
-- **Nightly**: Full test suite including slower scenarios
+- **On PR to main**: All tests must pass before merge (runs from feature branch)
+- **On push to feature branch**: Tests validate the changes
+- **Pre-commit**: Fast integration tests only (feature branches)
+- **Nightly**: Full test suite on feature branches
+- **After merge to main**: Tests automatically removed from main branch
 
-See `.github/workflows/test.yml` for CI configuration.
+⚠️ **Main branch has NO test files** - they are auto-removed after merge.
+
+See `.github/workflows/test.yml` and `.github/workflows/cleanup-main.yml` for CI configuration.
 
 ### Debugging Tests
 
