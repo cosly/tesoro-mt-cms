@@ -274,6 +274,65 @@ export interface Homepage {
     [k: string]: unknown;
   } | null;
   /**
+   * Flexible content blocks for the homepage
+   */
+  contentBlocks?:
+    | (
+        | {
+            /**
+             * Image for this block
+             */
+            image: string | Media;
+            /**
+             * Position of the image relative to the text
+             */
+            imagePosition: 'left' | 'right';
+            /**
+             * H3 title for this block
+             */
+            title: string;
+            /**
+             * Text content for this block
+             */
+            text: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageText';
+          }
+        | {
+            /**
+             * The quote text
+             */
+            quote: string;
+            /**
+             * Author of the quote (optional)
+             */
+            author?: string | null;
+            /**
+             * Author title/position (optional)
+             */
+            authorTitle?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quote';
+          }
+      )[]
+    | null;
+  /**
    * Highlight key features or benefits
    */
   features?:
@@ -491,6 +550,29 @@ export interface HomepageSelect<T extends boolean = true> {
             };
       };
   content?: T;
+  contentBlocks?:
+    | T
+    | {
+        imageText?:
+          | T
+          | {
+              image?: T;
+              imagePosition?: T;
+              title?: T;
+              text?: T;
+              id?: T;
+              blockName?: T;
+            };
+        quote?:
+          | T
+          | {
+              quote?: T;
+              author?: T;
+              authorTitle?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
   features?:
     | T
     | {

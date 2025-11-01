@@ -161,6 +161,102 @@ export const Homepage: CollectionConfig = {
         description: 'Rich content for the homepage body',
       },
     },
+    // Content Blocks
+    {
+      name: 'contentBlocks',
+      type: 'blocks',
+      label: 'Content Blocks',
+      admin: {
+        description: 'Flexible content blocks for the homepage',
+      },
+      blocks: [
+        // Image + Text Block
+        {
+          slug: 'imageText',
+          labels: {
+            singular: 'Image + Text Block',
+            plural: 'Image + Text Blocks',
+          },
+          fields: [
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              required: true,
+              admin: {
+                description: 'Image for this block',
+              },
+            },
+            {
+              name: 'imagePosition',
+              type: 'select',
+              required: true,
+              defaultValue: 'left',
+              options: [
+                { label: 'Left', value: 'left' },
+                { label: 'Right', value: 'right' },
+              ],
+              admin: {
+                description: 'Position of the image relative to the text',
+              },
+            },
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+              localized: true,
+              admin: {
+                description: 'H3 title for this block',
+              },
+            },
+            {
+              name: 'text',
+              type: 'richText',
+              required: true,
+              localized: true,
+              admin: {
+                description: 'Text content for this block',
+              },
+            },
+          ],
+        },
+        // Quote Block
+        {
+          slug: 'quote',
+          labels: {
+            singular: 'Quote Block',
+            plural: 'Quote Blocks',
+          },
+          fields: [
+            {
+              name: 'quote',
+              type: 'textarea',
+              required: true,
+              localized: true,
+              admin: {
+                description: 'The quote text',
+              },
+            },
+            {
+              name: 'author',
+              type: 'text',
+              localized: true,
+              admin: {
+                description: 'Author of the quote (optional)',
+              },
+            },
+            {
+              name: 'authorTitle',
+              type: 'text',
+              localized: true,
+              admin: {
+                description: 'Author title/position (optional)',
+              },
+            },
+          ],
+        },
+      ],
+    },
     // Features Section
     {
       name: 'features',
