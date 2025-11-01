@@ -67,6 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    tenants: Tenant;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -76,6 +77,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -117,10 +119,58 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: string;
+  name: string;
+  /**
+   * Subdomain for this tenant (e.g., "tenant1" for tenant1.app.com)
+   */
+  domain: string;
+  /**
+   * Tenant status
+   */
+  status: 'active' | 'inactive' | 'suspended';
+  settings?: {
+    theme?: ('default' | 'dark' | 'light') | null;
+    /**
+     * Maximum number of users allowed for this tenant
+     */
+    maxUsers?: number | null;
+    /**
+     * Maximum storage in MB
+     */
+    maxStorage?: number | null;
+  };
+  metadata?: {
+    contactEmail?: string | null;
+    contactName?: string | null;
+    address?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: string;
+  /**
+   * The tenant this user belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Super admins can manage all tenants
+   */
+  isSuperAdmin?: boolean | null;
+  /**
+   * User role within their tenant
+   */
+  role: 'admin' | 'editor' | 'user';
+  firstName?: string | null;
+  lastName?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -146,6 +196,10 @@ export interface User {
 export interface Media {
   id: string;
   alt: string;
+  /**
+   * The tenant this media belongs to
+   */
+  tenant?: (string | null) | Tenant;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -182,6 +236,10 @@ export interface PayloadKv {
 export interface PayloadLockedDocument {
   id: string;
   document?:
+    | ({
+        relationTo: 'tenants';
+        value: string | Tenant;
+      } | null)
     | ({
         relationTo: 'users';
         value: string | User;
@@ -238,9 +296,39 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  domain?: T;
+  status?: T;
+  settings?:
+    | T
+    | {
+        theme?: T;
+        maxUsers?: T;
+        maxStorage?: T;
+      };
+  metadata?:
+    | T
+    | {
+        contactEmail?: T;
+        contactName?: T;
+        address?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  tenant?: T;
+  isSuperAdmin?: T;
+  role?: T;
+  firstName?: T;
+  lastName?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -264,6 +352,7 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  tenant?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
