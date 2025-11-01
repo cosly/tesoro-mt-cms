@@ -9,43 +9,54 @@ This is a **Payload CMS 3.x** project built on Next.js 15 with TypeScript. It us
 ## Development Commands
 
 ### Setup
+
 ```bash
 pnpm install                      # Install dependencies
 cp .env.example .env             # Setup environment variables
 ```
 
 Required environment variables:
+
 - `DATABASE_URI` - MongoDB connection string (e.g., `mongodb://127.0.0.1/your-database-name`)
 - `PAYLOAD_SECRET` - Secret key for Payload CMS (generate a secure random string)
 
 ### Development
+
 ```bash
 pnpm dev                         # Start development server (localhost:3000)
 pnpm devsafe                     # Clean .next directory and start dev server
 ```
 
 ### Build & Production
+
 ```bash
 pnpm build                       # Build for production
 pnpm start                       # Start production server
 ```
 
 ### Code Quality
+
 ```bash
 pnpm lint                        # Run ESLint
 ```
 
 ### Testing
+
 ```bash
 pnpm test                        # Run all tests (integration + e2e)
 pnpm test:int                    # Run Vitest integration tests only
 pnpm test:e2e                    # Run Playwright e2e tests only
+pnpm exec playwright test --headed  # Run E2E in headed mode for debugging
+pnpm exec playwright test --ui   # Run E2E in UI mode
 ```
 
+**See [TESTING.md](./TESTING.md) for complete testing strategy and guidelines.**
+
 Integration tests are located in `tests/int/**/*.int.spec.ts` and run with Vitest.
-E2E tests are located in `tests/e2e/**/*.e2e.spec.ts` and run with Playwright.
+E2E tests are located in `tests/e2e/**/*.e2e.spec.ts` and run with Playwright (headless by default).
 
 ### Payload Commands
+
 ```bash
 pnpm generate:types              # Generate TypeScript types from Payload config
 pnpm generate:importmap          # Generate import map for admin panel
@@ -84,6 +95,7 @@ src/
 **Next.js Route Groups**: The `(frontend)` and `(payload)` directories use Next.js route groups (parentheses) to organize routes without affecting the URL structure. This separates frontend pages from the Payload admin panel.
 
 **Payload Collections**: Collections are defined in `src/collections/` and imported into `payload.config.ts`. Each collection is a TypeScript object that defines:
+
 - Schema/fields
 - Access control
 - Hooks
@@ -96,6 +108,7 @@ src/
 ### Path Aliases
 
 TypeScript is configured with path aliases:
+
 - `@/*` maps to `src/*`
 - `@payload-config` maps to `src/payload.config.ts`
 
@@ -156,3 +169,61 @@ const { user } = await payload.auth({ headers })
 The project uses custom webpack configuration in `next.config.mjs` to handle TypeScript extension aliases (`.ts`, `.tsx`, `.mts`, etc.). This is required for Payload CMS integration.
 
 Memory is increased for builds (`--max-old-space-size=8000`) to handle large CMS builds.
+
+## Testing Strategy
+
+This project follows a **pragmatic testing approach** targeting 60-70% coverage with focus on critical user flows.
+
+### Test Types
+
+1. **Integration Tests** (`tests/int/**/*.int.spec.ts`)
+   - Payload API operations (CRUD, hooks, access control)
+   - Fast execution (< 30 seconds for full suite)
+   - Run on pre-commit hooks
+
+2. **E2E Tests** (`tests/e2e/**/*.e2e.spec.ts`)
+   - Admin panel critical flows (auth, CRUD, media upload)
+   - Playwright with Chromium (headless by default)
+   - Focus on happy paths and admin workflows
+
+### Writing Tests
+
+**Always add tests when:**
+
+- Adding new collections
+- Implementing authentication/authorization logic
+- Creating admin panel workflows
+- Adding API endpoints
+
+**Test naming convention:**
+
+- Integration: `collection-name.int.spec.ts`
+- E2E: `admin-feature.e2e.spec.ts`
+
+**Use test helpers:**
+
+- `tests/helpers/auth.ts` - Login/logout helpers
+- Create new helpers for common test patterns
+
+### CI/CD
+
+Tests run automatically:
+
+- **On PR**: All tests must pass before merge
+- **Pre-commit**: Fast integration tests only
+- **Nightly**: Full test suite including slower scenarios
+
+See `.github/workflows/test.yml` for CI configuration.
+
+### Debugging Tests
+
+```bash
+# Playwright debugging
+pnpm exec playwright test --debug
+pnpm exec playwright show-report
+
+# Vitest watch mode
+pnpm exec vitest --watch
+```
+
+For complete testing guidelines, see [TESTING.md](./TESTING.md).
