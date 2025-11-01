@@ -1,0 +1,75 @@
+name: Cleanup Main Branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  remove-test-files:
+    name: Remove Test Files from Main
+    runs-on: ubuntu-latest
+    # Only run if test directories exist
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if test files exist
+        id: check_tests
+        run: |
+          if [ -d "tests" ] || [ -f "playwright.config.ts" ] || [ -f "vitest.config.mts" ] || [ -d ".husky" ] || [ -f "TESTING.md" ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Remove test directories and files
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: |
+          # Remove test directories
+          rm -rf tests/
+          rm -rf .husky/
+
+          # Remove test configuration files
+          rm -f playwright.config.ts
+          rm -f vitest.config.mts
+          rm -f vitest.setup.ts
+          rm -f TESTING.md
+
+          # Remove test-related GitHub workflows
+          rm -f .github/workflows/test.yml
+          rm -f .github/workflows/cleanup-main.yml
+
+          # Update package.json to remove test scripts and dependencies
+          # This uses jq to remove test-related fields
+          if command -v jq &> /dev/null; then
+            jq 'del(.scripts.test, .scripts["test:int"], .scripts["test:e2e"]) |
+                del(.devDependencies["@playwright/test"], .devDependencies.playwright, .devDependencies["playwright-core"], .devDependencies.vitest, .devDependencies["@vitejs/plugin-react"], .devDependencies["@testing-library/react"], .devDependencies.jsdom, .devDependencies["vite-tsconfig-paths"], .devDependencies.husky, .devDependencies["lint-staged"]) |
+                del(.["lint-staged"])' package.json > package.json.tmp && mv package.json.tmp package.json
+          fi
+
+          echo "Test files and configurations removed from main branch"
+
+      - name: Commit cleanup changes
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: remove test files from main branch [skip ci]
+
+          Test files are maintained in feature/dev branches only.
+          Tests run automatically on PRs before merge.
+
+          🤖 Automated cleanup by GitHub Actions" || echo "No changes to commit"
+          git push origin main
+
+      - name: Summary
+        if: steps.check_tests.outputs.has_tests == 'true'
+        run: |
+          echo "✓ Test files removed from main branch"
+          echo "✓ Main branch kept clean for production"
+          echo "✓ Tests still run on PRs and feature branches"

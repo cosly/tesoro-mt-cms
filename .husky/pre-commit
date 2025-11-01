@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+# Run lint-staged for linting and formatting
+pnpm exec lint-staged
+
+# Run fast integration tests only (skip E2E to keep commits fast)
+echo "Running integration tests..."
+pnpm test:int
