@@ -7,18 +7,12 @@ import type { Access, AccessArgs } from 'payload'
 
 /**
  * Get the viewing tenant from request header (for super-admins)
- * The TenantSwitcher component sends this header with every request
+ * Next.js middleware sets this header from cookie
  */
 function getViewingTenant(req: any): string | null {
   try {
-    console.log('[TenantAccess] All headers:', req.headers)
-
-    // Check for X-Viewing-Tenant header (lowercase and uppercase variants)
-    const viewingTenant =
-      req.headers?.['x-viewing-tenant'] ||
-      req.headers?.['X-Viewing-Tenant']
-
-    console.log('[TenantAccess] Found viewing tenant:', viewingTenant)
+    // Check for x-viewing-tenant header
+    const viewingTenant = req.headers?.['x-viewing-tenant']
 
     if (viewingTenant && typeof viewingTenant === 'string') {
       return viewingTenant
@@ -26,7 +20,6 @@ function getViewingTenant(req: any): string | null {
 
     return null
   } catch (error) {
-    console.error('[TenantAccess] Error getting viewing tenant:', error)
     return null
   }
 }
