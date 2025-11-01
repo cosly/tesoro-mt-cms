@@ -11,8 +11,14 @@ import type { Access, AccessArgs } from 'payload'
  */
 function getViewingTenant(req: any): string | null {
   try {
-    // Check for X-Viewing-Tenant header
-    const viewingTenant = req.headers?.['x-viewing-tenant']
+    console.log('[TenantAccess] All headers:', req.headers)
+
+    // Check for X-Viewing-Tenant header (lowercase and uppercase variants)
+    const viewingTenant =
+      req.headers?.['x-viewing-tenant'] ||
+      req.headers?.['X-Viewing-Tenant']
+
+    console.log('[TenantAccess] Found viewing tenant:', viewingTenant)
 
     if (viewingTenant && typeof viewingTenant === 'string') {
       return viewingTenant

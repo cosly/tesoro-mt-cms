@@ -20,10 +20,15 @@ export const TenantContextProvider: React.FC<{ children: React.ReactNode }> = ({
       // Get viewing tenant from localStorage
       const viewingTenant = localStorage.getItem('viewing-tenant')
 
+      console.log('[TenantContextProvider] Intercepted fetch to:', resource)
+      console.log('[TenantContextProvider] viewing-tenant from localStorage:', viewingTenant)
+
       if (viewingTenant && viewingTenant !== 'all') {
         // Add X-Viewing-Tenant header to request
         const headers = new Headers(config?.headers)
         headers.set('X-Viewing-Tenant', viewingTenant)
+
+        console.log('[TenantContextProvider] Added X-Viewing-Tenant header:', viewingTenant)
 
         // Merge headers back into config
         const newConfig = {
@@ -33,6 +38,8 @@ export const TenantContextProvider: React.FC<{ children: React.ReactNode }> = ({
 
         return originalFetch(resource, newConfig)
       }
+
+      console.log('[TenantContextProvider] No viewing tenant, proceeding without header')
 
       // No viewing tenant, proceed as normal
       return originalFetch(...args)
