@@ -20,40 +20,59 @@ export const TenantSwitcher: React.FC = () => {
     return null
   }
 
-  // Fetch tenants on mount
+  // Fetch tenants and current viewing tenant on mount
   useEffect(() => {
-    const fetchTenants = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/tenants?limit=100', {
+        // Fetch all tenants
+        const tenantsResponse = await fetch('/api/tenants?limit=100', {
           credentials: 'include',
         })
-        const data = await response.json()
-        setTenants(data.docs || [])
+        const tenantsData = await tenantsResponse.json()
+        setTenants(tenantsData.docs || [])
+
+        // Fetch current viewing tenant
+        const viewingResponse = await fetch('/api/set-viewing-tenant', {
+          credentials: 'include',
+        })
+        const viewingData = await viewingResponse.json()
+        if (viewingData.success && viewingData.viewingTenant) {
+          setCurrentTenant(viewingData.viewingTenant)
+        } else {
+          setCurrentTenant('all')
+        }
       } catch (error) {
-        console.error('Failed to fetch tenants:', error)
+        console.error('Failed to fetch data:', error)
+        setCurrentTenant('all')
       }
     }
 
-    fetchTenants()
+    fetchData()
   }, [])
-
-  // Get current tenant from URL or context
-  useEffect(() => {
-    const tenantId = user?.tenant
-    if (tenantId) {
-      setCurrentTenant(tenantId)
-    }
-  }, [user])
 
   // Handle tenant switch
   const handleTenantSwitch = async (tenantId: string) => {
     setLoading(true)
     try {
-      // Store selected tenant in session/localStorage
-      localStorage.setItem('selectedTenant', tenantId)
+      // Call API to set viewing tenant cookie
+      const response = await fetch('/api/set-viewing-tenant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ tenantId }),
+      })
 
-      // Reload page to apply new tenant context
-      window.location.reload()
+      const data = await response.json()
+
+      if (data.success) {
+        // Reload page to apply new tenant filter
+        window.location.reload()
+      } else {
+        console.error('Failed to set viewing tenant:', data.error)
+        setLoading(false)
+      }
     } catch (error) {
       console.error('Failed to switch tenant:', error)
       setLoading(false)
@@ -103,12 +122,7 @@ export const TenantSwitcher: React.FC = () => {
           value={currentTenant || 'all'}
           onChange={(e) => {
             const value = e.target.value
-            if (value === 'all') {
-              localStorage.removeItem('selectedTenant')
-              window.location.reload()
-            } else {
-              handleTenantSwitch(value)
-            }
+            handleTenantSwitch(value)
           }}
           disabled={loading}
           style={{

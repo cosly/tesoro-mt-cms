@@ -5,9 +5,42 @@ import type { Access, AccessArgs } from 'payload'
  * Super-admins can see all, regular users only their tenant's data
  */
 
-export const tenantRead: Access = ({ req: { user } }) => {
-  // Super admins see everything
+/**
+ * Get the viewing tenant from cookies (for super-admins)
+ */
+function getViewingTenant(req: any): string | null {
+  try {
+    // Check for viewing-tenant cookie
+    const cookieHeader = req.headers?.cookie
+    if (!cookieHeader) return null
+
+    const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, cookie: string) => {
+      const [key, value] = cookie.trim().split('=')
+      acc[key] = value
+      return acc
+    }, {})
+
+    return cookies['viewing-tenant'] || null
+  } catch (error) {
+    return null
+  }
+}
+
+export const tenantRead: Access = ({ req: { user }, req }) => {
+  // Super admins: check if they're viewing a specific tenant
   if (user?.isSuperAdmin) {
+    const viewingTenant = getViewingTenant(req)
+
+    if (viewingTenant) {
+      // Filter to the selected tenant
+      return {
+        tenant: {
+          equals: viewingTenant,
+        },
+      }
+    }
+
+    // No filter - show all tenants
     return true
   }
 
@@ -29,9 +62,20 @@ export const tenantCreate: Access = ({ req: { user } }) => {
   return !!(user && user.tenant)
 }
 
-export const tenantUpdate: Access = ({ req: { user } }) => {
-  // Super admins can update anything
+export const tenantUpdate: Access = ({ req: { user }, req }) => {
+  // Super admins: respect viewing tenant filter
   if (user?.isSuperAdmin) {
+    const viewingTenant = getViewingTenant(req)
+
+    if (viewingTenant) {
+      return {
+        tenant: {
+          equals: viewingTenant,
+        },
+      }
+    }
+
+    // No filter - can update all
     return true
   }
 
@@ -47,9 +91,20 @@ export const tenantUpdate: Access = ({ req: { user } }) => {
   return false
 }
 
-export const tenantDelete: Access = ({ req: { user } }) => {
-  // Super admins can delete anything
+export const tenantDelete: Access = ({ req: { user }, req }) => {
+  // Super admins: respect viewing tenant filter
   if (user?.isSuperAdmin) {
+    const viewingTenant = getViewingTenant(req)
+
+    if (viewingTenant) {
+      return {
+        tenant: {
+          equals: viewingTenant,
+        },
+      }
+    }
+
+    // No filter - can delete all
     return true
   }
 
@@ -69,9 +124,20 @@ export const tenantDelete: Access = ({ req: { user } }) => {
  * Admin-only access (within tenant)
  * Only tenant admins and super admins can perform action
  */
-export const tenantAdminOnly: Access = ({ req: { user } }) => {
-  // Super admins can do anything
+export const tenantAdminOnly: Access = ({ req: { user }, req }) => {
+  // Super admins: respect viewing tenant filter
   if (user?.isSuperAdmin) {
+    const viewingTenant = getViewingTenant(req)
+
+    if (viewingTenant) {
+      return {
+        tenant: {
+          equals: viewingTenant,
+        },
+      }
+    }
+
+    // No filter - can do anything
     return true
   }
 
@@ -92,9 +158,20 @@ export const tenantAdminOnly: Access = ({ req: { user } }) => {
  * @param roles - Array of allowed roles (e.g., ['admin', 'editor'])
  */
 export function tenantRoleAccess(roles: string[]): Access {
-  return ({ req: { user } }) => {
-    // Super admins can do anything
+  return ({ req: { user }, req }) => {
+    // Super admins: respect viewing tenant filter
     if (user?.isSuperAdmin) {
+      const viewingTenant = getViewingTenant(req)
+
+      if (viewingTenant) {
+        return {
+          tenant: {
+            equals: viewingTenant,
+          },
+        }
+      }
+
+      // No filter - can do anything
       return true
     }
 
