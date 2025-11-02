@@ -1,0 +1,497 @@
+# Collection Access Control
+
+URL: https://payloadcms.com/docs/access-control/collections
+Scraped: 2025-11-02T08:26:02.399Z
+
+Collection Access Control
+
+Collection Access Control is Access Control used to restrict access to Documents within a Collection, as well as what they can and cannot see within the Admin Panel as it relates to that Collection.
+
+To add Access Control to a Collection, use the access property in your Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithAccessControl: CollectionConfig = {
+4  // ...
+5  access: {
+6    
+7    // ...
+8  },
+9}
+Config Options
+
+Access Control is specific to the operation of the request.
+
+To add Access Control to a Collection, use the access property in your Collection Config:
+
+1import type { CollectionConfig } from 'payload';
+2
+
+3export const CollectionWithAccessControl: CollectionConfig = {
+4  // ...
+5  access: {
+6    create: () => {...},
+7    read: () => {...},
+8    update: () => {...},
+9    delete: () => {...},
+10
+
+11    // Auth-enabled Collections only
+12    admin: () => {...},
+13    unlock: () => {...},
+14
+
+15    // Version-enabled Collections only
+16    readVersions: () => {...},
+17  },
+18}
+
+The following options are available:
+
+Function
+
+	
+
+Allows/Denies Access
+
+
+
+
+create
+
+	
+
+Used in the create operation. More details.
+
+
+
+
+read
+
+	
+
+Used in the find and findByID operations. More details.
+
+
+
+
+update
+
+	
+
+Used in the update operation. More details.
+
+
+
+
+delete
+
+	
+
+Used in the delete operation. More details.
+
+If a Collection supports Authentication, the following additional options are available:
+
+Function
+
+	
+
+Allows/Denies Access
+
+
+
+
+admin
+
+	
+
+Used to restrict access to the Admin Panel. More details.
+
+
+
+
+unlock
+
+	
+
+Used to restrict which users can access the unlock operation. More details.
+
+If a Collection supports Versions, the following additional options are available:
+
+Function
+
+	
+
+Allows/Denies Access
+
+
+
+
+readVersions
+
+	
+
+Used to control who can read versions, and who can't. Will automatically restrict the Admin UI version viewing access. More details.
+
+Create
+
+Returns a boolean which allows/denies access to the create request.
+
+To add create Access Control to a Collection, use the create property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithCreateAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    create: ({ req: { user }, data }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+The following arguments are provided to the create function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+
+
+
+data
+
+	
+
+The data passed to create the document with.
+
+Read
+
+Returns a boolean which allows/denies access to the read request.
+
+To add read Access Control to a Collection, use the read property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithReadAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    read: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+Tip: Return a Query to limit the Documents to only those that match the constraint. This can be helpful to restrict users' access to specific Documents. More details.
+
+As your application becomes more complex, you may want to define your function in a separate file and import them into your Collection Config:
+
+1import type { Access } from 'payload'
+2
+
+3export const canReadPage: Access = ({ req: { user } }) => {
+4  // Allow authenticated users
+5  if (user) {
+6    return true
+7  }
+8
+
+9  // By returning a Query, guest users can read public Documents
+10  // Note: this assumes you have a `isPublic` checkbox field on your Collection
+11  return {
+12    isPublic: {
+13      equals: true,
+14    },
+15  }
+16}
+
+The following arguments are provided to the read function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+
+
+
+id
+
+	
+
+id of document requested, if within findByID.
+
+Update
+
+Returns a boolean which allows/denies access to the update request.
+
+To add update Access Control to a Collection, use the update property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithUpdateAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    update: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+Tip: Return a Query to limit the Documents to only those that match the constraint. This can be helpful to restrict users' access to specific Documents. More details.
+
+As your application becomes more complex, you may want to define your function in a separate file and import them into your Collection Config:
+
+1import type { Access } from 'payload'
+2
+
+3export const canUpdateUser: Access = ({ req: { user }, id }) => {
+4  // Allow users with a role of 'admin'
+5  if (user.roles && user.roles.some((role) => role === 'admin')) {
+6    return true
+7  }
+8
+
+9  // allow any other users to update only oneself
+10  return user.id === id
+11}
+
+The following arguments are provided to the update function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+
+
+
+id
+
+	
+
+id of document requested to update.
+
+
+
+
+data
+
+	
+
+The data passed to update the document with.
+
+Delete
+
+Similarly to the Update function, returns a boolean or a query constraint to limit which documents can be deleted by which users.
+
+To add delete Access Control to a Collection, use the delete property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithDeleteAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    delete: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+As your application becomes more complex, you may want to define your function in a separate file and import them into your Collection Config:
+
+1import type { Access } from 'payload'
+2
+
+3export const canDeleteCustomer: Access = async ({ req, id }) => {
+4  if (!id) {
+5    // allow the admin UI to show controls to delete since it is indeterminate without the `id`
+6    return true
+7  }
+8
+
+9  // Query another Collection using the `id`
+10  const result = await req.payload.find({
+11    collection: 'contracts',
+12    limit: 0,
+13    depth: 0,
+14    where: {
+15      customer: { equals: id },
+16    },
+17  })
+18
+
+19  return result.totalDocs === 0
+20}
+
+The following arguments are provided to the delete function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object with additional user property, which is the currently logged in user.
+
+
+
+
+id
+
+	
+
+id of document requested to delete.
+
+Admin
+
+If the Collection is used to access the Admin Panel, the Admin Access Control function determines whether or not the currently logged in user can access the admin UI.
+
+To add Admin Access Control to a Collection, use the admin property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithAdminAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    admin: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+The following arguments are provided to the admin function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+Unlock
+
+Determines which users can unlock other users who may be blocked from authenticating successfully due to failing too many login attempts.
+
+To add Unlock Access Control to a Collection, use the unlock property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithUnlockAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    unlock: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+The following arguments are provided to the unlock function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+Read Versions
+
+If the Collection has Versions enabled, the readVersions Access Control function determines whether or not the currently logged in user can access the version history of a Document.
+
+To add Read Versions Access Control to a Collection, use the readVersions property in the Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithVersionsAccess: CollectionConfig = {
+4  // ...
+5  access: {
+6    readVersions: ({ req: { user } }) => {
+7      return Boolean(user)
+8    },
+9  },
+10}
+
+The following arguments are provided to the readVersions function:
+
+Option
+
+	
+
+Description
+
+
+
+
+req
+
+	
+
+The Request object containing the currently authenticated user.
+
+Next
+Globals Access Control
+Related Guides
+How to set up and customize Collections

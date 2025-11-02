@@ -1,0 +1,400 @@
+# Multi-Tenant Plugin
+
+URL: https://payloadcms.com/docs/plugins/multi-tenant
+Scraped: 2025-11-02T08:26:27.596Z
+
+Multi-Tenant Plugin
+
+This plugin sets up multi-tenancy for your application from within your Admin Panel. It does so by adding a tenant field to all specified collections. Your front-end application can then query data by tenant. You must add the Tenants collection so you control what fields are available for each tenant.
+
+This plugin is completely open-source and the source code can be found here. If you need help, check out our Community Help. If you think you've found a bug, please open a new issue with as much detail as possible.
+
+Core features
+Adds a tenant field to each specified collection
+Adds a tenant selector to the admin panel, allowing you to switch between tenants
+Filters list view results by selected tenant
+Filters relationship fields by selected tenant
+Ability to create "global" like collections, 1 doc per tenant
+Automatically assign a tenant to new documents
+
+Warning
+
+By default this plugin cleans up documents when a tenant is deleted. You should ensure you have strong access control on your tenants collection to prevent deletions by unauthorized users.
+
+You can disable this behavior by setting cleanupAfterTenantDelete to false in the plugin options.
+
+Installation
+
+Install the plugin using any JavaScript package manager like pnpm, npm, or Yarn:
+
+1pnpm add @payloadcms/plugin-multi-tenant
+Options
+
+The plugin accepts an object with the following properties:
+
+1type MultiTenantPluginConfig<ConfigTypes = unknown> = {
+2  /**
+3   * Base path for your application
+4   *
+5   * https://nextjs.org/docs/app/api-reference/config/next-config-js/basePath
+6   *
+7   * @default undefined
+8   */
+9  basePath?: string
+10  /**
+11   * After a tenant is deleted, the plugin will attempt to clean up related documents
+12   * - removing documents with the tenant ID
+13   * - removing the tenant from users
+14   *
+15   * @default true
+16   */
+17  cleanupAfterTenantDelete?: boolean
+18  /**
+19   * Automatically
+20   */
+21  collections: {
+22    [key in CollectionSlug]?: {
+23      /**
+24       * Override the access result from the collection access control functions
+25       *
+26       * The function receives:
+27       *  - accessResult: the original result from the access control function
+28       *  - accessKey: 'read', 'create', 'update', 'delete', 'readVersions', or 'unlock'
+29       *  - ...restOfAccessArgs: the original arguments passed to the access control function
+30       */
+31      accessResultOverride?: CollectionAccessResultOverride
+32      /**
+33       * Opt out of adding the tenant field and place
+34       * it manually using the `tenantField` export from the plugin
+35       */
+36      customTenantField?: boolean
+37      /**
+38       * Set to `true` if you want the collection to behave as a global
+39       *
+40       * @default false
+41       */
+42      isGlobal?: boolean
+43      /**
+44       * Overrides for the tenant field, will override the entire tenantField configuration
+45       */
+46      tenantFieldOverrides?: CollectionTenantFieldConfigOverrides
+47      /**
+48       * Set to `false` if you want to manually apply the baseListFilter
+49       * Set to `false` if you want to manually apply the baseFilter
+50       *
+51       * @default true
+52       */
+53      useBaseFilter?: boolean
+54      /**
+55       * @deprecated Use `useBaseFilter` instead. If both are defined,
+56       * `useBaseFilter` will take precedence. This property remains only
+57       * for backward compatibility and may be removed in a future version.
+58       *
+59       * Originally, `baseListFilter` was intended to filter only the List View
+60       * in the admin panel. However, base filtering is often required in other areas
+61       * such as internal link relationships in the Lexical editor.
+62       *
+63       * @default true
+64       */
+65      useBaseListFilter?: boolean
+66      /**
+67       * Set to `false` if you want to handle collection access manually without the multi-tenant constraints applied
+68       *
+69       * @default true
+70       */
+71      useTenantAccess?: boolean
+72    }
+73  }
+74  /**
+75   * Enables debug mode
+76   * - Makes the tenant field visible in the admin UI within applicable collections
+77   *
+78   * @default false
+79   */
+80  debug?: boolean
+81  /**
+82   * Enables the multi-tenant plugin
+83   *
+84   * @default true
+85   */
+86  enabled?: boolean
+87  /**
+88   * Localization for the plugin
+89   */
+90  i18n?: {
+91    translations: {
+92      [key in AcceptedLanguages]?: {
+93        /**
+94         * Shown inside 3 dot menu on edit document view
+95         *
+96         * @default 'Assign Tenant'
+97         */
+98        'assign-tenant-button-label'?: string
+99        /**
+100         * Shown as the title of the assign tenant modal
+101         *
+102         * @default 'Assign "{{title}}"'
+103         */
+104        'assign-tenant-modal-title'?: string
+105        /**
+106         * Shown as the label for the assigned tenant field in the assign tenant modal
+107         *
+108         * @default 'Assigned Tenant'
+109         */
+110        'field-assignedTenant-label'?: string
+111        /**
+112         * Shown as the label for the global tenant selector in the admin UI
+113         *
+114         * @default 'Filter by Tenant'
+115         */
+116        'nav-tenantSelector-label'?: string
+117      }
+118    }
+119  }
+120  /**
+121   * Field configuration for the field added to all tenant enabled collections
+122   */
+123  tenantField?: RootTenantFieldConfigOverrides
+124  /**
+125   * Field configuration for the field added to the users collection
+126   *
+127   * If `includeDefaultField` is `false`, you must include the field on your users collection manually
+128   * This is useful if you want to customize the field or place the field in a specific location
+129   */
+130  tenantsArrayField?:
+131    | {
+132        /**
+133         * Access configuration for the array field
+134         */
+135        arrayFieldAccess?: ArrayField['access']
+136        /**
+137         * Name of the array field
+138         *
+139         * @default 'tenants'
+140         */
+141        arrayFieldName?: string
+142        /**
+143         * Name of the tenant field
+144         *
+145         * @default 'tenant'
+146         */
+147        arrayTenantFieldName?: string
+148        /**
+149         * When `includeDefaultField` is `true`, the field will be added to the users collection automatically
+150         */
+151        includeDefaultField?: true
+152        /**
+153         * Additional fields to include on the tenants array field
+154         */
+155        rowFields?: Field[]
+156        /**
+157         * Access configuration for the tenant field
+158         */
+159        tenantFieldAccess?: RelationshipField['access']
+160      }
+161    | {
+162        arrayFieldAccess?: never
+163        arrayFieldName?: string
+164        arrayTenantFieldName?: string
+165        /**
+166         * When `includeDefaultField` is `false`, you must include the field on your users collection manually
+167         */
+168        includeDefaultField?: false
+169        rowFields?: never
+170        tenantFieldAccess?: never
+171      }
+172  /**
+173   * Customize tenant selector label
+174   *
+175   * Either a string or an object where the keys are i18n codes and the values are the string labels
+176   *
+177   * @deprecated Use `i18n.translations` instead.
+178   */
+179  tenantSelectorLabel?:
+180    | Partial<{
+181        [key in AcceptedLanguages]?: string
+182      }>
+183    | string
+184  /**
+185   * The slug for the tenant collection
+186   *
+187   * @default 'tenants'
+188   */
+189  tenantsSlug?: string
+190  /**
+191   * Function that determines if a user has access to _all_ tenants
+192   *
+193   * Useful for super-admin type users
+194   */
+195  userHasAccessToAllTenants?: (
+196    user: ConfigTypes extends { user: unknown }
+197      ? ConfigTypes['user']
+198      : TypedUser,
+199  ) => boolean
+200  /**
+201   * Override the access result on the users collection access control functions
+202   *
+203   * The function receives:
+204   *  - accessResult: the original result from the access control function
+205   *  - accessKey: 'read', 'create', 'update', 'delete', 'readVersions', or 'unlock'
+206   *  - ...restOfAccessArgs: the original arguments passed to the access control function
+207   */
+208  usersAccessResultOverride?: CollectionAccessResultOverride
+209  /**
+210   * Opt out of adding access constraints to the tenants collection
+211   */
+212  useTenantsCollectionAccess?: boolean
+213  /**
+214   * Opt out including the baseListFilter to filter tenants by selected tenant
+215   */
+216  useTenantsListFilter?: boolean
+217
+
+218  /**
+219   * Opt out including the baseListFilter to filter users by selected tenant
+220   */
+221  useUsersTenantFilter?: boolean
+222}
+Basic Usage
+
+In the plugins array of your Payload Config, call the plugin with options:
+
+1import { buildConfig } from 'payload'
+2import { multiTenantPlugin } from '@payloadcms/plugin-multi-tenant'
+3import type { Config } from './payload-types'
+4
+
+5const config = buildConfig({
+6  collections: [
+7    {
+8      slug: 'tenants',
+9      admin: {
+10        useAsTitle: 'name',
+11      },
+12      fields: [
+13        // remember, you own these fields
+14        // these are merely suggestions/examples
+15        {
+16          name: 'name',
+17          type: 'text',
+18          required: true,
+19        },
+20        {
+21          name: 'slug',
+22          type: 'text',
+23          required: true,
+24        },
+25        {
+26          name: 'domain',
+27          type: 'text',
+28          required: true,
+29        },
+30      ],
+31    },
+32  ],
+33  plugins: [
+34    multiTenantPlugin<Config>({
+35      collections: {
+36        pages: {},
+37        navigation: {
+38          isGlobal: true,
+39        },
+40      },
+41    }),
+42  ],
+43})
+44
+
+45export default config
+Front end usage
+
+The plugin scaffolds out everything you will need to separate data by tenant. You can use the tenant field to filter data from enabled collections in your front-end application.
+
+In your frontend you can query and constrain data by tenant with the following:
+
+1const pagesBySlug = await payload.find({
+2  collection: 'pages',
+3  depth: 1,
+4  draft: false,
+5  limit: 1000,
+6  overrideAccess: false,
+7  where: {
+8    // your constraint would depend on the
+9    // fields you added to the tenants collection
+10    // here we are assuming a slug field exists
+11    // on the tenant collection, like in the example above
+12    'tenant.slug': {
+13      equals: 'gold',
+14    },
+15  },
+16})
+NextJS rewrites
+
+Using NextJS rewrites and this route structure /[tenantDomain]/[slug], we can rewrite routes specifically for domains requested:
+
+1async rewrites() {
+2  return [
+3    {
+4      source: '/((?!admin|api)):path*',
+5      destination: '/:tenantDomain/:path*',
+6      has: [
+7        {
+8          type: 'host',
+9          value: '(?<tenantDomain>.*)',
+10        },
+11      ],
+12    },
+13  ];
+14}
+React Hooks
+
+Below are the hooks exported from the plugin that you can import into your own custom components to consume.
+
+useTenantSelection
+
+You can import this like so:
+
+1import { useTenantSelection } from '@payloadcms/plugin-multi-tenant/client'
+2
+
+3...
+4
+
+5const tenantContext = useTenantSelection()
+
+The hook returns the following context:
+
+1type ContextType = {
+2  /**
+3   * Array of options to select from
+4   */
+5  options: OptionObject[]
+6  /**
+7   * The currently selected tenant ID
+8   */
+9  selectedTenantID: number | string | undefined
+10  /**
+11   * Prevents a refresh when the tenant is changed
+12   *
+13   * If not switching tenants while viewing a "global",
+14   * set to true
+15   */
+16  setPreventRefreshOnChange: React.Dispatch<React.SetStateAction<boolean>>
+17  /**
+18   * Sets the selected tenant ID
+19   *
+20   * @param args.id - The ID of the tenant to select
+21   * @param args.refresh - Whether to refresh the page
+22   * after changing the tenant
+23   */
+24  setTenant: (args: {
+25    id: number | string | undefined
+26    refresh?: boolean
+27  }) => void
+28}
+Examples
+
+The Examples Directory also contains an official Multi-Tenant example.
+
+Next
+Nested Docs Plugin

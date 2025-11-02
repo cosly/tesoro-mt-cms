@@ -1,0 +1,1174 @@
+# Collection Hooks
+
+URL: https://payloadcms.com/docs/hooks/collections
+Scraped: 2025-11-02T08:25:50.041Z
+
+Collection Hooks
+
+Collection Hooks are Hooks that run on Documents within a specific Collection. They allow you to execute your own logic during specific events of the Document lifecycle.
+
+To add Hooks to a Collection, use the hooks property in your Collection Config:
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const CollectionWithHooks: CollectionConfig = {
+4  // ...
+5  hooks: {
+6    
+7    // ...
+8  },
+9}
+
+Tip: You can also set hooks on the field-level to isolate hook logic to specific fields. More details.
+
+Config Options
+
+All Collection Hooks accept an array of synchronous or asynchronous functions. Each Collection Hook receives specific arguments based on its own type, and has the ability to modify specific outputs.
+
+1import type { CollectionConfig } from 'payload';
+2
+
+3export const CollectionWithHooks: CollectionConfig = {
+4  // ...
+5  hooks: {
+6    beforeOperation: [(args) => {...}],
+7    beforeValidate: [(args) => {...}],
+8    beforeDelete: [(args) => {...}],
+9    beforeChange: [(args) => {...}],
+10    beforeRead: [(args) => {...}],
+11    afterChange: [(args) => {...}],
+12    afterRead: [(args) => {...}],
+13    afterDelete: [(args) => {...}],
+14    afterOperation: [(args) => {...}],
+15    afterError: [(args) => {....}],
+16
+
+17    // Auth-enabled Hooks
+18    beforeLogin: [(args) => {...}],
+19    afterLogin: [(args) => {...}],
+20    afterLogout: [(args) => {...}],
+21    afterRefresh: [(args) => {...}],
+22    afterMe: [(args) => {...}],
+23    afterForgotPassword: [(args) => {...}],
+24    refresh: [(args) => {...}],
+25    me: [(args) => {...}],
+26  },
+27}
+beforeOperation
+
+The beforeOperation hook can be used to modify the arguments that operations accept or execute side-effects that run before an operation begins.
+
+1import type { CollectionBeforeOperationHook } from 'payload'
+2
+
+3const beforeOperationHook: CollectionBeforeOperationHook = async ({
+4  args,
+5  operation,
+6  req,
+7}) => {
+8  return args // return modified operation arguments as necessary
+9}
+
+The following arguments are provided to the beforeOperation hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against. Available options include: autosave, count, countVersions, create, delete, forgotPassword, login, read, readDistinct, refresh, resetPassword, restoreVersion, and update.
+
+
+
+
+context
+
+	
+
+Custom context passed between Hooks. More details.
+
+
+
+
+operation
+
+	
+
+The name of the operation that this hook is running within.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+beforeValidate
+
+Runs during the create and update operations. This hook allows you to add or format data before the incoming data is validated server-side.
+
+Please do note that this does not run before client-side validation. If you render a custom field component in your front-end and provide it with a validate function, the order that validations will run in is:
+
+validate runs on the client
+if successful, beforeValidate runs on the server
+validate runs on the server
+1import type { CollectionBeforeValidateHook } from 'payload'
+2
+
+3const beforeValidateHook: CollectionBeforeValidateHook = async ({ data }) => {
+4  return data
+5}
+
+The following arguments are provided to the beforeValidate hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between Hooks. More details.
+
+
+
+
+data
+
+	
+
+The incoming data passed through the operation.
+
+
+
+
+operation
+
+	
+
+The name of the operation that this hook is running within.
+
+
+
+
+originalDoc
+
+	
+
+The Document before changes are applied.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+beforeChange
+
+Immediately before validation, beforeChange hooks will run during create and update operations. At this stage, the data should be treated as unvalidated user input. There is no guarantee that required fields exist or that fields are in the correct format. As such, using this data for side effects requires manual validation. You can optionally modify the shape of the data to be saved.
+
+1import type { CollectionBeforeChangeHook } from 'payload'
+2
+
+3const beforeChangeHook: CollectionBeforeChangeHook = async ({ data }) => {
+4  return data
+5}
+
+The following arguments are provided to the beforeChange hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+data
+
+	
+
+The incoming data passed through the operation.
+
+
+
+
+operation
+
+	
+
+The name of the operation that this hook is running within.
+
+
+
+
+originalDoc
+
+	
+
+The Document before changes are applied.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+afterChange
+
+After a document is created or updated, the afterChange hook runs. This hook is helpful to recalculate statistics such as total sales within a global, syncing user profile changes to a CRM, and more.
+
+1import type { CollectionAfterChangeHook } from 'payload'
+2
+
+3const afterChangeHook: CollectionAfterChangeHook = async ({ doc }) => {
+4  return doc
+5}
+
+The following arguments are provided to the afterChange hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+data
+
+	
+
+The incoming data passed through the operation.
+
+
+
+
+doc
+
+	
+
+The resulting Document after changes are applied.
+
+
+
+
+operation
+
+	
+
+The name of the operation that this hook is running within.
+
+
+
+
+previousDoc
+
+	
+
+The Document before changes were applied.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+beforeRead
+
+Runs before find and findByID operations are transformed for output by afterRead. This hook fires before hidden fields are removed and before localized fields are flattened into the requested locale. Using this Hook will provide you with all locales and all hidden fields via the doc argument.
+
+1import type { CollectionBeforeReadHook } from 'payload'
+2
+
+3const beforeReadHook: CollectionBeforeReadHook = async ({ doc }) => {
+4  return doc
+5}
+
+The following arguments are provided to the beforeRead hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+doc
+
+	
+
+The resulting Document after changes are applied.
+
+
+
+
+query
+
+	
+
+The Query of the request.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+afterRead
+
+Runs as the last step before documents are returned. Flattens locales, hides protected fields, and removes fields that users do not have access to.
+
+1import type { CollectionAfterReadHook } from 'payload'
+2
+
+3const afterReadHook: CollectionAfterReadHook = async ({ doc }) => {
+4  return doc
+5}
+
+The following arguments are provided to the afterRead hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+doc
+
+	
+
+The resulting Document after changes are applied.
+
+
+
+
+query
+
+	
+
+The Query of the request.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+beforeDelete
+
+Runs before the delete operation. Returned values are discarded.
+
+1import type { CollectionBeforeDeleteHook } from 'payload';
+2
+
+3const beforeDeleteHook: CollectionBeforeDeleteHook = async ({
+4  req,
+5  id,
+6}) => {...}
+
+The following arguments are provided to the beforeDelete hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+id
+
+	
+
+The ID of the Document being deleted.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+afterDelete
+
+Runs immediately after the delete operation removes records from the database. Returned values are discarded.
+
+1import type { CollectionAfterDeleteHook } from 'payload';
+2
+
+3const afterDeleteHook: CollectionAfterDeleteHook = async ({
+4  req,
+5  id,
+6  doc,
+7}) => {...}
+
+The following arguments are provided to the afterDelete hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+doc
+
+	
+
+The resulting Document after changes are applied.
+
+
+
+
+id
+
+	
+
+The ID of the Document that was deleted.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+afterOperation
+
+The afterOperation hook can be used to modify the result of operations or execute side-effects that run after an operation has completed.
+
+Available Collection operations include create, find, findByID, update, updateByID, delete, deleteByID, login, refresh, and forgotPassword.
+
+1import type { CollectionAfterOperationHook } from 'payload'
+2
+
+3const afterOperationHook: CollectionAfterOperationHook = async ({ result }) => {
+4  return result
+5}
+
+The following arguments are provided to the afterOperation hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+args
+
+	
+
+The arguments passed into the operation.
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+
+
+
+operation
+
+	
+
+The name of the operation that this hook is running within.
+
+
+
+
+result
+
+	
+
+The result of the operation, before modifications.
+
+afterError
+
+The afterError Hook is triggered when an error occurs in the Payload application. This can be useful for logging errors to a third-party service, sending an email to the development team, logging the error to Sentry or DataDog, etc. The output can be used to transform the result object / status code.
+
+1import type { CollectionAfterErrorHook } from 'payload';
+2
+
+3const afterErrorHook: CollectionAfterErrorHook = async ({
+4  req,
+5  id,
+6  doc,
+7}) => {...}
+
+The following arguments are provided to the afterError Hook:
+
+Argument
+
+	
+
+Description
+
+
+
+
+error
+
+	
+
+The error that occurred.
+
+
+
+
+context
+
+	
+
+Custom context passed between Hooks. More details.
+
+
+
+
+graphqlResult
+
+	
+
+The GraphQL result object, available if the hook is executed within a GraphQL context.
+
+
+
+
+req
+
+	
+
+The PayloadRequest object that extends Web Request. Contains currently authenticated user and the Local API instance payload.
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+result
+
+	
+
+The formatted error result object, available if the hook is executed from a REST context.
+
+beforeLogin
+
+For Auth-enabled Collections, this hook runs during login operations where a user with the provided credentials exist, but before a token is generated and added to the response. You can optionally modify the user that is returned, or throw an error in order to deny the login operation.
+
+1import type { CollectionBeforeLoginHook } from 'payload'
+2
+
+3const beforeLoginHook: CollectionBeforeLoginHook = async ({ user }) => {
+4  return user
+5}
+
+The following arguments are provided to the beforeLogin hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+
+
+
+user
+
+	
+
+The user being logged in.
+
+afterLogin
+
+For Auth-enabled Collections, this hook runs after successful login operations. You can optionally modify the user that is returned.
+
+1import type { CollectionAfterLoginHook } from 'payload';
+2
+
+3const afterLoginHook: CollectionAfterLoginHook = async ({
+4  user,
+5  token,
+6}) => {...}
+
+The following arguments are provided to the afterLogin hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+
+
+
+token
+
+	
+
+The token generated for the user.
+
+
+
+
+user
+
+	
+
+The user being logged in.
+
+afterLogout
+
+For Auth-enabled Collections, this hook runs after logout operations.
+
+1import type { CollectionAfterLogoutHook } from 'payload';
+2
+
+3const afterLogoutHook: CollectionAfterLogoutHook = async ({
+4  req,
+5}) => {...}
+
+The following arguments are provided to the afterLogout hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+afterMe
+
+For Auth-enabled Collections, this hook runs after me operations.
+
+1import type { CollectionAfterMeHook } from 'payload';
+2
+
+3const afterMeHook: CollectionAfterMeHook = async ({
+4  req,
+5  response,
+6}) => {...}
+
+The following arguments are provided to the afterMe hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+
+
+
+response
+
+	
+
+The response to return.
+
+afterRefresh
+
+For Auth-enabled Collections, this hook runs after refresh operations.
+
+1import type { CollectionAfterRefreshHook } from 'payload';
+2
+
+3const afterRefreshHook: CollectionAfterRefreshHook = async ({
+4  token,
+5}) => {...}
+
+The following arguments are provided to the afterRefresh hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+
+
+
+exp
+
+	
+
+The expiration time of the token.
+
+
+
+
+req
+
+	
+
+The Web Request object. This is mocked for Local API operations.
+
+
+
+
+token
+
+	
+
+The newly refreshed user token.
+
+afterForgotPassword
+
+For Auth-enabled Collections, this hook runs after successful forgotPassword operations. Returned values are discarded.
+
+1import type { CollectionAfterForgotPasswordHook } from 'payload'
+2
+
+3const afterForgotPasswordHook: CollectionAfterForgotPasswordHook = async ({
+4  args,
+5  context,
+6  collection,
+7}) => {...}
+
+The following arguments are provided to the afterForgotPassword hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+args
+
+	
+
+The arguments passed into the operation.
+
+
+
+
+collection
+
+	
+
+The Collection in which this Hook is running against.
+
+
+
+
+context
+
+	
+
+Custom context passed between hooks. More details.
+
+refresh
+
+For Auth-enabled Collections, this hook allows you to optionally replace the default behavior of the refresh operation with your own. If you optionally return a value from your hook, the operation will not perform its own logic and continue.
+
+1import type { CollectionRefreshHook } from 'payload'
+2
+
+3const myRefreshHook: CollectionRefreshHook = async ({
+4  args,
+5  user,
+6}) => {...}
+
+The following arguments are provided to the afterRefresh hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+args
+
+	
+
+The arguments passed into the operation.
+
+
+
+
+user
+
+	
+
+The user being logged in.
+
+me
+
+For Auth-enabled Collections, this hook allows you to optionally replace the default behavior of the me operation with your own. If you optionally return a value from your hook, the operation will not perform its own logic and continue.
+
+1import type { CollectionMeHook } from 'payload'
+2
+
+3const meHook: CollectionMeHook = async ({
+4  args,
+5  user,
+6}) => {...}
+
+The following arguments are provided to the me hook:
+
+Option
+
+	
+
+Description
+
+
+
+
+args
+
+	
+
+The arguments passed into the operation.
+
+
+
+
+user
+
+	
+
+The user being logged in.
+
+TypeScript
+
+Payload exports a type for each Collection hook which can be accessed as follows:
+
+1import type {
+2  CollectionBeforeOperationHook,
+3  CollectionBeforeValidateHook,
+4  CollectionBeforeChangeHook,
+5  CollectionAfterChangeHook,
+6  CollectionAfterReadHook,
+7  CollectionBeforeReadHook,
+8  CollectionBeforeDeleteHook,
+9  CollectionAfterDeleteHook,
+10  CollectionBeforeLoginHook,
+11  CollectionAfterLoginHook,
+12  CollectionAfterLogoutHook,
+13  CollectionAfterRefreshHook,
+14  CollectionAfterMeHook,
+15  CollectionAfterForgotPasswordHook,
+16  CollectionRefreshHook,
+17  CollectionMeHook,
+18} from 'payload'
+Next
+Global Hooks

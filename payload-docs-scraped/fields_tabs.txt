@@ -1,0 +1,166 @@
+# Tabs Field
+
+URL: https://payloadcms.com/docs/fields/tabs
+Scraped: 2025-11-02T08:25:25.009Z
+
+Tabs Field
+
+The Tabs Field is presentational-only and only affects the Admin Panel (unless a tab is named). By using it, you can place fields within a nice layout component that separates certain sub-fields by a tabbed interface.
+
+Tabs field type used to separate Hero fields from Page Layout
+
+To add a Tabs Field, set the type to tabs in your Field Config:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyTabsField: Field = {
+4  // ...
+5  type: 'tabs',
+6  tabs: [
+7    // ...
+8  ],
+9}
+Config Options
+
+Option
+
+	
+
+Description
+
+
+
+
+tabs *
+
+	
+
+Array of tabs to render within this Tabs field.
+
+
+
+
+admin
+
+	
+
+Admin-specific configuration. More details.
+
+
+
+
+custom
+
+	
+
+Extension point for adding custom data (e.g. for plugins)
+
+Tab-specific Config
+
+Each tab must have either a name or label and the required fields array. You can also optionally pass a description to render within each individual tab.
+
+Option
+
+	
+
+Description
+
+
+
+
+name
+
+	
+
+Groups field data into an object when stored and retrieved from the database. More details.
+
+
+
+
+label
+
+	
+
+The label to render on the tab itself. Required when name is undefined, defaults to name converted to words.
+
+
+
+
+fields *
+
+	
+
+The fields to render within this tab.
+
+
+
+
+description
+
+	
+
+Optionally render a description within this tab to describe the contents of the tab itself.
+
+
+
+
+interfaceName
+
+	
+
+Create a top level, reusable Typescript interface & GraphQL type. (name must be present)
+
+
+
+
+virtual
+
+	
+
+Provide true to disable field in the database, or provide a string path to link the field with a relationship. See Virtual Fields
+
+* An asterisk denotes that a property is required.
+
+Example
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      type: 'tabs', // required
+8      tabs: [
+9        // required
+10        {
+11          label: 'Tab One Label', // required
+12          description: 'This will appear within the tab above the fields.',
+13          fields: [
+14            // required
+15            {
+16              name: 'someTextField',
+17              type: 'text',
+18              required: true,
+19            },
+20          ],
+21        },
+22        {
+23          name: 'tabTwo',
+24          label: 'Tab Two Label', // required
+25          interfaceName: 'TabTwo', // optional (`name` must be present)
+26          fields: [
+27            // required
+28            {
+29              name: 'numberField', // accessible via tabTwo.numberField
+30              type: 'number',
+31              required: true,
+32            },
+33          ],
+34        },
+35      ],
+36    },
+37  ],
+38}
+Next
+Text Field

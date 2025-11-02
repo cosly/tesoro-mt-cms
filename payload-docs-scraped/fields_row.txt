@@ -1,0 +1,93 @@
+# Row Field
+
+URL: https://payloadcms.com/docs/fields/row
+Scraped: 2025-11-02T08:25:29.079Z
+
+Row Field
+
+The Row Field is presentational-only and only affects the Admin Panel. By using it, you can arrange Fields next to each other horizontally.
+
+Admin Panel screenshot of a Row field
+
+To add a Row Field, set the type to row in your Field Config:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyRowField: Field = {
+4  // ...
+5  type: 'row',
+6  fields: [
+7    // ...
+8  ],
+9}
+Config Options
+
+Option
+
+	
+
+Description
+
+
+
+
+fields *
+
+	
+
+Array of field types to nest within this Row.
+
+
+
+
+admin
+
+	
+
+Admin-specific configuration excluding description, readOnly, and hidden. More details.
+
+
+
+
+custom
+
+	
+
+Extension point for adding custom data (e.g. for plugins)
+
+* An asterisk denotes that a property is required.
+
+Example
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      type: 'row', // required
+8      fields: [
+9        // required
+10        {
+11          name: 'label',
+12          type: 'text',
+13          required: true,
+14          admin: {
+15            width: '50%',
+16          },
+17        },
+18        {
+19          name: 'value',
+20          type: 'text',
+21          required: true,
+22          admin: {
+23            width: '50%',
+24          },
+25        },
+26      ],
+27    },
+28  ],
+29}
+Next
+Select Field

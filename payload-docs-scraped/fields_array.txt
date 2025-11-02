@@ -1,0 +1,400 @@
+# Array Field
+
+URL: https://payloadcms.com/docs/fields/array
+Scraped: 2025-11-02T08:25:12.566Z
+
+Array Field
+
+The Array Field is used when you need to have a set of "repeating" Fields. It stores an array of objects containing fields that you define. These fields can be of any type, including other arrays, to achieve infinitely nested data structures.
+
+Arrays are useful for many different types of content from simple to complex, such as:
+
+A "slider" with an image (upload field) and a caption (text field)
+Navigational structures where editors can specify nav items containing pages (relationship field), an "open in new tab" checkbox field
+Event agenda "timeslots" where you need to specify start & end time (date field), label (text field), and Learn More page relationship
+Admin Panel screenshot of an Array field with two Rows
+
+To create an Array Field, set the type to array in your Field Config:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyArrayField: Field = {
+4  // ...
+5  type: 'array',
+6  fields: [
+7    // ...
+8  ],
+9}
+Config Options
+
+Option
+
+	
+
+Description
+
+
+
+
+name *
+
+	
+
+To be used as the property name when stored and retrieved from the database. More details.
+
+
+
+
+label
+
+	
+
+Text used as the heading in the Admin Panel or an object with keys for each language. Auto-generated from name if not defined.
+
+
+
+
+fields *
+
+	
+
+Array of field types to correspond to each row of the Array.
+
+
+
+
+validate
+
+	
+
+Provide a custom validation function that will be executed on both the Admin Panel and the backend. More details.
+
+
+
+
+minRows
+
+	
+
+A number for the fewest allowed items during validation when a value is present.
+
+
+
+
+maxRows
+
+	
+
+A number for the most allowed items during validation when a value is present.
+
+
+
+
+saveToJWT
+
+	
+
+If this field is top-level and nested in a config supporting Authentication, include its data in the user JWT.
+
+
+
+
+hooks
+
+	
+
+Provide Field Hooks to control logic for this field. More details.
+
+
+
+
+access
+
+	
+
+Provide Field Access Control to denote what users can see and do with this field's data. More details.
+
+
+
+
+hidden
+
+	
+
+Restrict this field's visibility from all APIs entirely. Will still be saved to the database, but will not appear in any API or the Admin Panel.
+
+
+
+
+defaultValue
+
+	
+
+Provide an array of row data to be used for this field's default value. More details.
+
+
+
+
+localized
+
+	
+
+Enable localization for this field. Requires localization to be enabled in the Base config. If enabled, a separate, localized set of all data within this Array will be kept, so there is no need to specify each nested field as localized.
+
+
+
+
+required
+
+	
+
+Require this field to have a value.
+
+
+
+
+labels
+
+	
+
+Customize the row labels appearing in the Admin dashboard.
+
+
+
+
+admin
+
+	
+
+Admin-specific configuration. More details.
+
+
+
+
+custom
+
+	
+
+Extension point for adding custom data (e.g. for plugins)
+
+
+
+
+interfaceName
+
+	
+
+Create a top level, reusable Typescript interface & GraphQL type.
+
+
+
+
+dbName
+
+	
+
+Custom table name for the field when using SQL Database Adapter (Postgres). Auto-generated from name if not defined.
+
+
+
+
+typescriptSchema
+
+	
+
+Override field type generation with providing a JSON schema
+
+
+
+
+virtual
+
+	
+
+Provide true to disable field in the database, or provide a string path to link the field with a relationship. See Virtual Fields
+
+* An asterisk denotes that a property is required.
+
+Admin Options
+
+To customize the appearance and behavior of the Array Field in the Admin Panel, you can use the admin option:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyArrayField: Field = {
+4  // ...
+5  admin: {
+6    
+7    // ...
+8  },
+9}
+
+The Array Field inherits all of the default admin options from the base Field Admin Config, plus the following additional options:
+
+Option
+
+	
+
+Description
+
+
+
+
+initCollapsed
+
+	
+
+Set the initial collapsed state
+
+
+
+
+components.RowLabel
+
+	
+
+React component to be rendered as the label on the array row. Example
+
+
+
+
+isSortable
+
+	
+
+Disable order sorting by setting this value to false
+
+Example
+
+In this example, we have an Array Field called slider that contains a set of fields for a simple image slider. Each row in the array has a title, image, and caption. We also customize the row label to display the title if it exists, or a default label if it doesn't.
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      name: 'slider', // required
+8      type: 'array', // required
+9      label: 'Image Slider',
+10      minRows: 2,
+11      maxRows: 10,
+12      interfaceName: 'CardSlider', // optional
+13      labels: {
+14        singular: 'Slide',
+15        plural: 'Slides',
+16      },
+17      fields: [
+18        // required
+19        {
+20          name: 'title',
+21          type: 'text',
+22        },
+23        {
+24          name: 'image',
+25          type: 'upload',
+26          relationTo: 'media',
+27          required: true,
+28        },
+29        {
+30          name: 'caption',
+31          type: 'text',
+32        },
+33      ],
+34    },
+35  ],
+36}
+Custom Components
+Field
+Server Component
+1import type React from 'react'
+2import { ArrayField } from '@payloadcms/ui'
+3import type { ArrayFieldServerComponent } from 'payload'
+4
+
+5export const CustomArrayFieldServer: ArrayFieldServerComponent = ({
+6  clientField,
+7  path,
+8  schemaPath,
+9  permissions,
+10}) => {
+11  return (
+12    <ArrayField
+13      field={clientField}
+14      path={path}
+15      schemaPath={schemaPath}
+16      permissions={permissions}
+17    />
+18  )
+19}
+Client Component
+1'use client'
+2import React from 'react'
+3import { ArrayField } from '@payloadcms/ui'
+4import type { ArrayFieldClientComponent } from 'payload'
+5
+
+6export const CustomArrayFieldClient: ArrayFieldClientComponent = (props) => {
+7  return <ArrayField {...props} />
+8}
+Label
+Server Component
+1import React from 'react'
+2import { FieldLabel } from '@payloadcms/ui'
+3import type { ArrayFieldLabelServerComponent } from 'payload'
+4
+
+5export const CustomArrayFieldLabelServer: ArrayFieldLabelServerComponent = ({
+6  clientField,
+7  path,
+8}) => {
+9  return (
+10    <FieldLabel
+11      label={clientField?.label || clientField?.name}
+12      path={path}
+13      required={clientField?.required}
+14    />
+15  )
+16}
+Client Component
+1'use client'
+2import type { ArrayFieldLabelClientComponent } from 'payload'
+3
+
+4import { FieldLabel } from '@payloadcms/ui'
+5import React from 'react'
+6
+
+7export const CustomArrayFieldLabelClient: ArrayFieldLabelClientComponent = ({
+8  field,
+9  path,
+10}) => {
+11  return (
+12    <FieldLabel
+13      label={field?.label || field?.name}
+14      path={path}
+15      required={field?.required}
+16    />
+17  )
+18}
+Row Label
+1'use client'
+2
+
+3import { useRowLabel } from '@payloadcms/ui'
+4
+
+5export const ArrayRowLabel = () => {
+6  const { data, rowNumber } = useRowLabel<{ title?: string }>()
+7
+
+8  const customLabel = `${data.title || 'Slide'} ${String(rowNumber).padStart(2, '0')} `
+9
+
+10  return <div>Custom Label: {customLabel}</div>
+11}
+Next
+Blocks Field

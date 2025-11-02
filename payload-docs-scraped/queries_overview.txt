@@ -1,0 +1,402 @@
+# Querying your Documents
+
+URL: https://payloadcms.com/docs/queries/overview
+Scraped: 2025-11-02T08:26:15.250Z
+
+Querying your Documents
+
+In Payload, "querying" means filtering or searching through Documents within a Collection. The querying language in Payload is designed to be simple and powerful, allowing you to filter Documents with extreme precision through an intuitive and standardized structure.
+
+Payload provides three common APIs for querying your data:
+
+Local API - Extremely fast, direct-to-database access
+REST API - Standard HTTP endpoints for querying and mutating data
+GraphQL - A full GraphQL API with a GraphQL Playground
+
+Each of these APIs share the same underlying querying language, and fully support all of the same features. This means that you can learn Payload's querying language once, and use it across any of the APIs that you might use.
+
+To query your Documents, you can send any number of Operators through your request:
+
+1import type { Where } from 'payload'
+2
+
+3const query: Where = {
+4  color: {
+5    equals: 'blue',
+6  },
+7}
+
+The exact query syntax will depend on the API you are using, but the concepts are the same across all APIs. More details.
+
+Tip: You can also use queries within Access Control functions.
+
+Operators
+
+The following operators are available for use in queries:
+
+Operator
+
+	
+
+Description
+
+
+
+
+equals
+
+	
+
+The value must be exactly equal.
+
+
+
+
+not_equals
+
+	
+
+The query will return all documents where the value is not equal.
+
+
+
+
+greater_than
+
+	
+
+For numeric or date-based fields.
+
+
+
+
+greater_than_equal
+
+	
+
+For numeric or date-based fields.
+
+
+
+
+less_than
+
+	
+
+For numeric or date-based fields.
+
+
+
+
+less_than_equal
+
+	
+
+For numeric or date-based fields.
+
+
+
+
+like
+
+	
+
+Case-insensitive string must be present. If string of words, all words must be present, in any order.
+
+
+
+
+contains
+
+	
+
+Must contain the value entered, case-insensitive.
+
+
+
+
+in
+
+	
+
+The value must be found within the provided comma-delimited list of values.
+
+
+
+
+not_in
+
+	
+
+The value must NOT be within the provided comma-delimited list of values.
+
+
+
+
+all
+
+	
+
+The value must contain all values provided in the comma-delimited list. Note: currently this operator is supported only with the MongoDB adapter.
+
+
+
+
+exists
+
+	
+
+Only return documents where the value either exists (true) or does not exist (false).
+
+
+
+
+near
+
+	
+
+For distance related to a Point Field comma separated as <longitude>, <latitude>, <maxDistance in meters (nullable)>, <minDistance in meters (nullable)>.
+
+
+
+
+within
+
+	
+
+For Point Fields to filter documents based on whether points are inside of the given area defined in GeoJSON. Example
+
+
+
+
+intersects
+
+	
+
+For Point Fields to filter documents based on whether points intersect with the given area defined in GeoJSON. Example
+
+Tip: If you know your users will be querying on certain fields a lot, add index: true to the Field Config. This will speed up searches using that field immensely. More details.
+
+And / Or Logic
+
+In addition to defining simple queries, you can join multiple queries together using AND / OR logic. These can be nested as deeply as you need to create complex queries.
+
+To join queries, use the and or or keys in your query object:
+
+1import type { Where } from 'payload'
+2
+
+3const query: Where = {
+4  or: [
+5    
+6    {
+7      color: {
+8        equals: 'mint',
+9      },
+10    },
+11    {
+12      and: [
+13        
+14        {
+15          color: {
+16            equals: 'white',
+17          },
+18        },
+19        {
+20          featured: {
+21            equals: false,
+22          },
+23        },
+24      ],
+25    },
+26  ],
+27}
+
+Written in plain English, if the above query were passed to a find operation, it would translate to finding posts where either the color is mint OR the color is white AND featured is set to false.
+
+Nested properties
+
+When working with nested properties, which can happen when using relational fields, it is possible to use the dot notation to access the nested property. For example, when working with a Song collection that has an artists field which is related to an Artists collection using the name: 'artists'. You can access a property within the collection Artists like so:
+
+1import type { Where } from 'payload'
+2
+
+3const query: Where = {
+4  'artists.featured': {
+5    // nested property name to filter on
+6    exists: true, // operator to use and boolean value that needs to be true
+7  },
+8}
+Writing Queries
+
+Writing queries in Payload is simple and consistent across all APIs, with only minor differences in syntax between them.
+
+Local API
+
+The Local API supports the find operation that accepts a raw query object:
+
+1import type { Payload } from 'payload'
+2
+
+3const getPosts = async (payload: Payload) => {
+4  const posts = await payload.find({
+5    collection: 'posts',
+6    where: {
+7      color: {
+8        equals: 'mint',
+9      },
+10    },
+11  })
+12
+
+13  return posts
+14}
+GraphQL API
+
+All find queries in the GraphQL API support the where argument that accepts a raw query object:
+
+1query {
+2  Posts(where: { color: { equals: mint } }) {
+3    docs {
+4      color
+5    }
+6    totalDocs
+7  }
+8}
+REST API
+
+With the REST API, you can use the full power of Payload queries, but they are written as query strings instead:
+
+https://localhost:3000/api/posts?where[color][equals]=mint
+
+To understand the syntax, you need to understand that complex URL search strings are parsed into a JSON object. This one isn't too bad, but more complex queries get unavoidably more difficult to write.
+
+For this reason, we recommend to use the extremely helpful and ubiquitous qs-esm package to parse your JSON / object-formatted queries into query strings:
+
+1import { stringify } from 'qs-esm'
+2import type { Where } from 'payload'
+3
+
+4const query: Where = {
+5  color: {
+6    equals: 'mint',
+7  },
+8  // This query could be much more complex
+9  // and qs-esm would handle it beautifully
+10}
+11
+
+12const getPosts = async () => {
+13  const stringifiedQuery = stringify(
+14    {
+15      where: query, // ensure that `qs-esm` adds the `where` property, too!
+16    },
+17    { addQueryPrefix: true },
+18  )
+19
+
+20  const response = await fetch(
+21    `http://localhost:3000/api/posts${stringifiedQuery}`,
+22  )
+23  // Continue to handle the response below...
+24}
+Performance
+
+There are several ways to optimize your queries. Many of these options directly impact overall database overhead, response sizes, and/or computational load and can significantly improve performance.
+
+When building queries, combine as many of these strategies together as possible to ensure your queries are as performant as they can be.
+
+For more performance tips, see the Performance documentation.
+
+Indexes
+
+Build Indexes for fields that are often queried or sorted by.
+
+When your query runs, the database will not search the entire document to find that one field, but will instead use the index to quickly locate the data.
+
+This is done by adding index: true to the Field Config for that field:
+
+1// In your collection configuration
+2{
+3  name: 'posts',
+4  fields: [
+5    {
+6      name: 'title',
+7      type: 'text',
+8      index: true, // Add an index to the title field
+9    },
+10    // Other fields...
+11  ],
+12}
+
+To learn more, see the Indexes documentation.
+
+Depth
+
+Set the Depth to only the level that you need to avoid populating unnecessary related documents.
+
+Relationships will only populate down to the specified depth, and any relationships beyond that depth will only return the ID of the related document.
+
+1const posts = await payload.find({
+2  collection: 'posts',
+3  where: { ... },
+4  depth: 0, // Only return the IDs of related documents
+5})
+
+To learn more, see the Depth documentation.
+
+Limit
+
+Set the Limit if you can reliably predict the number of matched documents, such as when querying on a unique field.
+
+1const posts = await payload.find({
+2  collection: 'posts',
+3  where: {
+4    slug: {
+5      equals: 'unique-post-slug',
+6    },
+7  },
+8  limit: 1, // Only expect one document to be returned
+9})
+
+Tip: Use in combination with pagination: false for best performance when querying by unique fields.
+
+To learn more, see the Limit documentation.
+
+Select
+
+Use the Select API to only process and return the fields you need.
+
+This will reduce the amount of data returned from the request, and also skip processing of any fields that are not selected, such as running their field hooks.
+
+1const posts = await payload.find({
+2  collection: 'posts',
+3  where: { ... },
+4  select: [{
+5    title: true,
+6  }],
+
+This is a basic example, but there are many ways to use the Select API, including selecting specific fields, excluding fields, etc.
+
+To learn more, see the Select documentation.
+
+Pagination
+
+Disable Pagination if you can reliably predict the number of matched documents, such as when querying on a unique field.
+
+1const posts = await payload.find({
+2  collection: 'posts',
+3  where: {
+4    slug: {
+5      equals: 'unique-post-slug',
+6    },
+7  },
+8  pagination: false, // Return all matched documents without pagination
+9})
+
+Tip: Use in combination with limit: 1 for best performance when querying by unique fields.
+
+To learn more, see the Pagination documentation.
+
+Next
+Sort

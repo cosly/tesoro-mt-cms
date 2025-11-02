@@ -1,0 +1,137 @@
+# Plugins
+
+URL: https://payloadcms.com/docs/plugins/overview
+Scraped: 2025-11-02T08:26:23.515Z
+
+Plugins
+
+Payload Plugins take full advantage of the modularity of the Payload Config, allowing developers to easily inject custom—sometimes complex—functionality into Payload apps from a very small touch-point. This is especially useful for sharing your work across multiple projects or with the greater Payload community.
+
+There are many Official Plugins available that solve for some of the most common use cases, such as the Form Builder Plugin or SEO Plugin. There are also Community Plugins available, maintained entirely by contributing members. To extend Payload's functionality in some other way, you can easily build your own plugin.
+
+To configure Plugins, use the plugins property in your Payload Config:
+
+1import { buildConfig } from 'payload'
+2
+
+3const config = buildConfig({
+4  // ...
+5  plugins: [
+6    // Add Plugins here
+7  ],
+8})
+
+Writing Plugins is no more complex than writing regular JavaScript. If you know the basic concept of callback functions or how spread syntax works, and are up to speed with Payload concepts, then writing a plugin will be a breeze.
+
+Because we rely on a simple config-based structure, Payload Plugins simply take in an existing config and return a modified config with new fields, hooks, collections, admin views, or anything else you can think of.
+
+Example use cases:
+
+Automatically sync data from a specific collection to HubSpot or a similar CRM when data is added or changes
+Add password-protection functionality to certain documents
+Add a full e-commerce backend to any Payload app
+Add custom reporting views to Payload's Admin Panel
+Encrypt specific collections' data
+Add a full form builder implementation
+Integrate all upload-enabled collections with a third-party file host like S3 or Cloudinary
+Add custom endpoints or GraphQL queries / mutations with any type of custom functionality that you can think of
+Official Plugins
+
+Payload maintains a set of Official Plugins that solve for some of the common use cases. These plugins are maintained by the Payload team and its contributors and are guaranteed to be stable and up-to-date.
+
+Form Builder
+Nested Docs
+Redirects
+Search
+Sentry
+SEO
+Stripe
+Import/Export
+Ecommerce
+
+You can also build your own plugin to easily extend Payload's functionality in some other way. Once your plugin is ready, consider sharing it with the community.
+
+Plugins are changing every day, so be sure to check back often to see what new plugins may have been added. If you have a specific plugin you would like to see, please feel free to start a new Discussion.
+
+For a complete list of Official Plugins, visit the Packages Directory of the Payload Monorepo.
+
+Community Plugins
+
+Community Plugins are those that are maintained entirely by outside contributors. They are a great way to share your work across the ecosystem for others to use. You can discover Community Plugins by browsing the payload-plugin topic on GitHub.
+
+Some plugins have become so widely used that they are adopted as an Official Plugin, such as the Lexical Plugin. If you have a plugin that you think should be an Official Plugin, please feel free to start a new Discussion.
+
+For maintainers building plugins for others to use, please add the payload-plugin topic on GitHub to help others find it.
+
+Example
+
+The base Payload Config allows for a plugins property which takes an array of Plugin Configs.
+
+1import { buildConfig } from 'payload'
+2import { addLastModified } from './addLastModified.ts'
+3
+
+4const config = buildConfig({
+5  // ...
+6  plugins: [addLastModified],
+7})
+
+Payload Plugins are executed after the incoming config is validated, but before it is sanitized and has had default options merged in. After all plugins are executed, the full config with all plugins will be sanitized.
+
+Here is an example what the addLastModified plugin from above might look like. It adds a lastModifiedBy field to all Payload collections. For full details, see how to build your own plugin.
+
+1import { Config, Plugin } from 'payload'
+2
+
+3export const addLastModified: Plugin = (incomingConfig: Config): Config => {
+4  // Find all incoming auth-enabled collections
+5  // so we can create a lastModifiedBy relationship field
+6  // to all auth collections
+7  const authEnabledCollections = incomingConfig.collections.filter(
+8    (collection) => Boolean(collection.auth),
+9  )
+10
+
+11  // Spread the existing config
+12  const config: Config = {
+13    ...incomingConfig,
+14    collections: incomingConfig.collections.map((collection) => {
+15      // Spread each item that we are modifying,
+16      // and add our new field - complete with
+17      // hooks and proper admin UI config
+18      return {
+19        ...collection,
+20        fields: [
+21          ...collection.fields,
+22          {
+23            name: 'lastModifiedBy',
+24            type: 'relationship',
+25            relationTo: authEnabledCollections.map(({ slug }) => slug),
+26            hooks: {
+27              beforeChange: [
+28                ({ req }) => ({
+29                  value: req?.user?.id,
+30                  relationTo: req?.user?.collection,
+31                }),
+32              ],
+33            },
+34            admin: {
+35              position: 'sidebar',
+36              readOnly: true,
+37            },
+38          },
+39        ],
+40      }
+41    }),
+42  }
+43
+
+44  return config
+45}
+
+Reminder: See how to build your own plugin for a more in-depth explication on how to create your own Payload Plugin.
+
+Next
+Building Your Own Plugin
+Related Guides
+How to install and configure the Payload SEO plugin

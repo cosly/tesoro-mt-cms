@@ -51,7 +51,6 @@ node_modules/
 
 # Documentation cache
 .payload-docs/
-payload-docs-scraped/
 
 # Temporary files
 cookies.txt
