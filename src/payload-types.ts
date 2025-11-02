@@ -70,6 +70,12 @@ export interface Config {
     tenants: Tenant;
     users: User;
     media: Media;
+    pages: Page;
+    'theme-settings': ThemeSetting;
+    'site-settings': SiteSetting;
+    navigation: Navigation;
+    footer: Footer;
+    blog: Blog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +86,12 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    'theme-settings': ThemeSettingsSelect<false> | ThemeSettingsSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    blog: BlogSelect<false> | BlogSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -90,7 +102,7 @@ export interface Config {
   };
   globals: {};
   globalsSelect: {};
-  locale: null;
+  locale: 'en' | 'nl' | 'es';
   user: User & {
     collection: 'users';
   };
@@ -157,20 +169,8 @@ export interface Tenant {
  */
 export interface User {
   id: string;
-  /**
-   * The tenant this user belongs to
-   */
   tenant?: (string | null) | Tenant;
-  /**
-   * Super admins can manage all tenants
-   */
   isSuperAdmin?: boolean | null;
-  /**
-   * User role within their tenant
-   */
-  role: 'admin' | 'editor' | 'user';
-  firstName?: string | null;
-  lastName?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -196,10 +196,6 @@ export interface User {
 export interface Media {
   id: string;
   alt: string;
-  /**
-   * The tenant this media belongs to
-   */
-  tenant?: (string | null) | Tenant;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -211,6 +207,735 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * Build your website pages with flexible content blocks
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  /**
+   * The tenant this page belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Page title (e.g., "About Us", "Contact")
+   */
+  title: string;
+  /**
+   * URL-friendly slug (e.g., "about-us", "contact")
+   */
+  slug: string;
+  /**
+   * Build your page using content blocks
+   */
+  blocks?:
+    | (
+        | {
+            variant: 'image' | 'video' | 'slider';
+            title: string;
+            subtitle?: string | null;
+            backgroundImage?: (string | null) | Media;
+            videoUrl?: string | null;
+            height?: ('small' | 'medium' | 'large' | 'fullscreen') | null;
+            buttons?:
+              | {
+                  text: string;
+                  link: string;
+                  style?: ('primary' | 'secondary' | 'outline') | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            columns: 1 | 2 | 3;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'textContent';
+          }
+        | {
+            title?: string | null;
+            subtitle?: string | null;
+            layout: 'grid' | 'list' | 'carousel';
+            filter?: {
+              propertyType?: ('all' | 'sale' | 'rent') | null;
+              featured?: boolean | null;
+              /**
+               * Maximum number of properties to display
+               */
+              maxResults?: number | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'propertyShowcase';
+          }
+        | {
+            title?: string | null;
+            subtitle?: string | null;
+            columns?: (2 | 3 | 4) | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'agentGrid';
+          }
+        | {
+            title?: string | null;
+            description?: string | null;
+            formFields: ('name' | 'email' | 'phone' | 'subject' | 'message')[];
+            submitAction: 'crm-api' | 'email' | 'both';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contactForm';
+          }
+        | {
+            title?: string | null;
+            layout?: ('grid' | 'masonry' | 'carousel') | null;
+            images: {
+              image: string | Media;
+              caption?: string | null;
+              id?: string | null;
+            }[];
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageGallery';
+          }
+        | {
+            title?: string | null;
+            layout?: ('slider' | 'grid') | null;
+            testimonials: {
+              quote: string;
+              author: string;
+              role?: string | null;
+              photo?: (string | null) | Media;
+              rating?: number | null;
+              id?: string | null;
+            }[];
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'testimonials';
+          }
+        | {
+            title: string;
+            description?: string | null;
+            backgroundImage?: (string | null) | Media;
+            /**
+             * Hex color (overrides background image)
+             */
+            backgroundColor?: string | null;
+            button: {
+              text: string;
+              link: string;
+              style?: ('primary' | 'secondary' | 'white') | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+        | {
+            height: 'small' | 'medium' | 'large' | 'xlarge';
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'spacer';
+          }
+      )[]
+    | null;
+  /**
+   * Control where this page appears in menus
+   */
+  navigation?: {
+    /**
+     * Display this page in the main navigation menu
+     */
+    showInNavigation?: boolean | null;
+    /**
+     * Custom label for navigation (uses page title if empty)
+     */
+    navigationLabel?: string | null;
+    /**
+     * Order in navigation (lower numbers appear first)
+     */
+    navigationOrder?: number | null;
+    /**
+     * Display this page in the footer
+     */
+    showInFooter?: boolean | null;
+    /**
+     * Which footer column to display this page in
+     */
+    footerColumn?: ('col1' | 'col2' | 'col3' | 'col4') | null;
+    /**
+     * Order within footer column (lower numbers appear first)
+     */
+    footerOrder?: number | null;
+  };
+  seo?: {
+    /**
+     * Page title for search engines (60 chars recommended)
+     */
+    metaTitle?: string | null;
+    /**
+     * Page description for search engines (160 chars recommended)
+     */
+    metaDescription?: string | null;
+    /**
+     * Image for social media sharing (Open Graph)
+     */
+    metaImage?: (string | null) | Media;
+    /**
+     * Comma-separated keywords
+     */
+    keywords?: string | null;
+  };
+  /**
+   * Publishing status
+   */
+  status: 'draft' | 'published';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Customize your website styling and branding
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme-settings".
+ */
+export interface ThemeSetting {
+  id: string;
+  /**
+   * The tenant these settings belong to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Choose your website template style
+   */
+  template: 'modern' | 'classic' | 'minimal' | 'luxury';
+  colors: {
+    /**
+     * Primary brand color (e.g., #1E40AF)
+     */
+    primary: string;
+    /**
+     * Secondary accent color (e.g., #64748B)
+     */
+    secondary: string;
+    /**
+     * Accent/highlight color (e.g., #F59E0B)
+     */
+    accent: string;
+    /**
+     * Background color (e.g., #FFFFFF)
+     */
+    background: string;
+  };
+  typography: {
+    /**
+     * Font for headings (H1, H2, H3, etc.)
+     */
+    headingFont:
+      | 'Montserrat'
+      | 'Playfair Display'
+      | 'Roboto'
+      | 'Open Sans'
+      | 'Lato'
+      | 'Poppins'
+      | 'Inter'
+      | 'Raleway'
+      | 'Merriweather'
+      | 'Oswald';
+    /**
+     * Font for body text and paragraphs
+     */
+    bodyFont:
+      | 'Open Sans'
+      | 'Lato'
+      | 'Roboto'
+      | 'Inter'
+      | 'Montserrat'
+      | 'Poppins'
+      | 'Source Sans Pro'
+      | 'Nunito'
+      | 'PT Sans'
+      | 'Work Sans';
+  };
+  branding?: {
+    /**
+     * Main logo (used in header)
+     */
+    logo?: (string | null) | Media;
+    /**
+     * Footer logo (optional, uses main logo if not set)
+     */
+    logoFooter?: (string | null) | Media;
+    /**
+     * Favicon (16x16 or 32x32 .ico or .png)
+     */
+    favicon?: (string | null) | Media;
+  };
+  styling: {
+    /**
+     * Border radius for buttons and cards (0-20px)
+     */
+    borderRadius: number;
+    /**
+     * Button shape style
+     */
+    buttonStyle: 'rounded' | 'square' | 'pill';
+    /**
+     * Shadow intensity for cards and elements
+     */
+    shadowIntensity: 'none' | 'subtle' | 'medium' | 'strong';
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Configure website features and general settings
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: string;
+  /**
+   * The tenant these settings belong to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Assign special pages for your website
+   */
+  pages?: {
+    /**
+     * Select which page is your homepage
+     */
+    homepage?: (string | null) | Page;
+    /**
+     * Custom 404 page (optional)
+     */
+    notFoundPage?: (string | null) | Page;
+  };
+  /**
+   * Assign legal & policy pages
+   */
+  legalPages?: {
+    /**
+     * Privacy Policy page
+     */
+    privacyPolicy?: (string | null) | Page;
+    /**
+     * Terms & Conditions page
+     */
+    termsAndConditions?: (string | null) | Page;
+    /**
+     * Cookie Policy page
+     */
+    cookiePolicy?: (string | null) | Page;
+  };
+  /**
+   * Enable or disable features for your website
+   */
+  features?: {
+    /**
+     * Show blog/news section on your website
+     */
+    enableBlog?: boolean | null;
+    /**
+     * Show client testimonials and reviews
+     */
+    enableTestimonials?: boolean | null;
+    /**
+     * Show team members (data from CRM)
+     */
+    enableTeamPage?: boolean | null;
+    /**
+     * Allow visitors to submit contact forms
+     */
+    enableContactForm?: boolean | null;
+    /**
+     * Show newsletter subscription forms
+     */
+    enableNewsletter?: boolean | null;
+    /**
+     * Show property search functionality
+     */
+    enableSearch?: boolean | null;
+  };
+  /**
+   * Default SEO settings for your website
+   */
+  seo?: {
+    /**
+     * Default page title (used when page has no specific title)
+     */
+    defaultTitle?: string | null;
+    /**
+     * Default meta description (160 characters recommended)
+     */
+    defaultDescription?: string | null;
+    /**
+     * Default Open Graph image for social sharing
+     */
+    defaultImage?: (string | null) | Media;
+    /**
+     * Default keywords (comma-separated)
+     */
+    keywords?: string | null;
+  };
+  /**
+   * Your business contact details
+   */
+  contact?: {
+    /**
+     * Official company name
+     */
+    companyName?: string | null;
+    /**
+     * General contact email
+     */
+    email?: string | null;
+    /**
+     * Main phone number
+     */
+    phone?: string | null;
+    address?: {
+      street?: string | null;
+      city?: string | null;
+      postalCode?: string | null;
+      country?: string | null;
+    };
+    /**
+     * Opening hours (plain text or HTML)
+     */
+    openingHours?: string | null;
+  };
+  /**
+   * Your social media profile links
+   */
+  socialMedia?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    linkedin?: string | null;
+    twitter?: string | null;
+    youtube?: string | null;
+  };
+  /**
+   * Analytics and tracking configuration
+   */
+  analytics?: {
+    /**
+     * Google Analytics ID (e.g., G-XXXXXXXXXX)
+     */
+    googleAnalyticsId?: string | null;
+    /**
+     * Google Tag Manager ID (e.g., GTM-XXXXXXX)
+     */
+    googleTagManagerId?: string | null;
+    /**
+     * Facebook Pixel ID
+     */
+    facebookPixelId?: string | null;
+    customScripts?: {
+      /**
+       * Custom scripts to inject in <head> (advanced users only)
+       */
+      headScript?: string | null;
+      /**
+       * Custom scripts to inject before </body> (advanced users only)
+       */
+      bodyScript?: string | null;
+    };
+  };
+  additional?: {
+    /**
+     * Enable to show maintenance page to visitors
+     */
+    maintenanceMode?: boolean | null;
+    /**
+     * Message to display during maintenance
+     */
+    maintenanceMessage?: string | null;
+    /**
+     * Show cookie consent banner (GDPR compliance)
+     */
+    cookieConsent?: boolean | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Configure your main navigation menu
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: string;
+  /**
+   * Auto-generated from tenant name
+   */
+  name?: string | null;
+  /**
+   * The tenant this navigation belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Custom navigation menu items (Note: Pages with "Show in Navigation" will also appear)
+   */
+  menuItems?:
+    | {
+        type: 'page' | 'url' | 'group';
+        label: string;
+        page?: (string | null) | Page;
+        url?: string | null;
+        /**
+         * Open link in new tab
+         */
+        openInNewTab?: boolean | null;
+        /**
+         * Sub-menu items
+         */
+        children?:
+          | {
+              label: string;
+              type: 'page' | 'url';
+              page?: (string | null) | Page;
+              url?: string | null;
+              description?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Optional icon name (e.g., "home", "info")
+         */
+        icon?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Logo position in header
+   */
+  logoPosition: 'left' | 'center' | 'right';
+  /**
+   * Navigation menu style
+   */
+  menuStyle: 'horizontal' | 'dropdown' | 'mega';
+  /**
+   * Keep header visible when scrolling
+   */
+  stickyHeader?: boolean | null;
+  ctaEnabled?: boolean | null;
+  ctaText?: string | null;
+  ctaLink?: (string | null) | Page;
+  ctaStyle?: ('primary' | 'secondary' | 'outline') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Configure your website footer
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: string;
+  /**
+   * The tenant this footer belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  layout: {
+    /**
+     * Number of footer columns
+     */
+    columns: 1 | 2 | 3 | 4;
+    /**
+     * Display social media icons (from Site Settings)
+     */
+    showSocialMedia?: boolean | null;
+    /**
+     * Display newsletter subscription form
+     */
+    showNewsletter?: boolean | null;
+  };
+  column1?: {
+    title?: string | null;
+    /**
+     * Optional text content (company description, etc.)
+     */
+    content?: string | null;
+    links?:
+      | {
+          label: string;
+          type: 'page' | 'url';
+          page?: (string | null) | Page;
+          url?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  column2?: {
+    title?: string | null;
+    links?:
+      | {
+          label: string;
+          type: 'page' | 'url';
+          page?: (string | null) | Page;
+          url?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  column3?: {
+    title?: string | null;
+    /**
+     * Display contact info from Site Settings
+     */
+    showContactInfo?: boolean | null;
+    links?:
+      | {
+          label: string;
+          type: 'page' | 'url';
+          page?: (string | null) | Page;
+          url?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  column4?: {
+    title?: string | null;
+    content?: string | null;
+    links?:
+      | {
+          label: string;
+          type: 'page' | 'url';
+          page?: (string | null) | Page;
+          url?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  bottomBar?: {
+    /**
+     * Use {year} for current year, {company} for company name
+     */
+    copyrightText?: string | null;
+    /**
+     * Privacy Policy, Terms, etc. (Note: Pages marked with "Show in Footer" also appear)
+     */
+    legalLinks?:
+      | {
+          label: string;
+          page: string | Page;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Manage blog posts and news articles
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog".
+ */
+export interface Blog {
+  id: string;
+  /**
+   * The tenant this post belongs to
+   */
+  tenant?: (string | null) | Tenant;
+  /**
+   * Blog post title
+   */
+  title: string;
+  /**
+   * URL-friendly slug (e.g., "new-property-tips")
+   */
+  slug: string;
+  /**
+   * Short summary (shown in blog list)
+   */
+  excerpt?: string | null;
+  /**
+   * Featured image for the blog post
+   */
+  featuredImage?: (string | null) | Media;
+  /**
+   * Blog post content
+   */
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Post author
+   */
+  author: string | User;
+  /**
+   * Post categories
+   */
+  categories?: ('buying-tips' | 'selling-tips' | 'market-analysis' | 'news' | 'guides' | 'success-stories')[] | null;
+  /**
+   * Comma-separated tags
+   */
+  tags?: string | null;
+  /**
+   * Publication date
+   */
+  publishedDate?: string | null;
+  /**
+   * Post status
+   */
+  status: 'draft' | 'published' | 'archived';
+  seo?: {
+    /**
+     * SEO title (60 chars recommended)
+     */
+    metaTitle?: string | null;
+    /**
+     * SEO description (160 chars recommended)
+     */
+    metaDescription?: string | null;
+    /**
+     * Image for social sharing (uses featured image if not set)
+     */
+    metaImage?: (string | null) | Media;
+  };
+  /**
+   * Estimated reading time in minutes
+   */
+  readingTime?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -247,6 +972,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: string | Page;
+      } | null)
+    | ({
+        relationTo: 'theme-settings';
+        value: string | ThemeSetting;
+      } | null)
+    | ({
+        relationTo: 'site-settings';
+        value: string | SiteSetting;
+      } | null)
+    | ({
+        relationTo: 'navigation';
+        value: string | Navigation;
+      } | null)
+    | ({
+        relationTo: 'footer';
+        value: string | Footer;
+      } | null)
+    | ({
+        relationTo: 'blog';
+        value: string | Blog;
       } | null)
     | ({
         relationTo: 'payload-kv';
@@ -326,9 +1075,6 @@ export interface TenantsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   tenant?: T;
   isSuperAdmin?: T;
-  role?: T;
-  firstName?: T;
-  lastName?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -352,7 +1098,6 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
-  tenant?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -364,6 +1109,435 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  blocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              variant?: T;
+              title?: T;
+              subtitle?: T;
+              backgroundImage?: T;
+              videoUrl?: T;
+              height?: T;
+              buttons?:
+                | T
+                | {
+                    text?: T;
+                    link?: T;
+                    style?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        textContent?:
+          | T
+          | {
+              columns?: T;
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        propertyShowcase?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              layout?: T;
+              filter?:
+                | T
+                | {
+                    propertyType?: T;
+                    featured?: T;
+                    maxResults?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        agentGrid?:
+          | T
+          | {
+              title?: T;
+              subtitle?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        contactForm?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              formFields?: T;
+              submitAction?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageGallery?:
+          | T
+          | {
+              title?: T;
+              layout?: T;
+              images?:
+                | T
+                | {
+                    image?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        testimonials?:
+          | T
+          | {
+              title?: T;
+              layout?: T;
+              testimonials?:
+                | T
+                | {
+                    quote?: T;
+                    author?: T;
+                    role?: T;
+                    photo?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              backgroundImage?: T;
+              backgroundColor?: T;
+              button?:
+                | T
+                | {
+                    text?: T;
+                    link?: T;
+                    style?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        spacer?:
+          | T
+          | {
+              height?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  navigation?:
+    | T
+    | {
+        showInNavigation?: T;
+        navigationLabel?: T;
+        navigationOrder?: T;
+        showInFooter?: T;
+        footerColumn?: T;
+        footerOrder?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        metaImage?: T;
+        keywords?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme-settings_select".
+ */
+export interface ThemeSettingsSelect<T extends boolean = true> {
+  tenant?: T;
+  template?: T;
+  colors?:
+    | T
+    | {
+        primary?: T;
+        secondary?: T;
+        accent?: T;
+        background?: T;
+      };
+  typography?:
+    | T
+    | {
+        headingFont?: T;
+        bodyFont?: T;
+      };
+  branding?:
+    | T
+    | {
+        logo?: T;
+        logoFooter?: T;
+        favicon?: T;
+      };
+  styling?:
+    | T
+    | {
+        borderRadius?: T;
+        buttonStyle?: T;
+        shadowIntensity?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  tenant?: T;
+  pages?:
+    | T
+    | {
+        homepage?: T;
+        notFoundPage?: T;
+      };
+  legalPages?:
+    | T
+    | {
+        privacyPolicy?: T;
+        termsAndConditions?: T;
+        cookiePolicy?: T;
+      };
+  features?:
+    | T
+    | {
+        enableBlog?: T;
+        enableTestimonials?: T;
+        enableTeamPage?: T;
+        enableContactForm?: T;
+        enableNewsletter?: T;
+        enableSearch?: T;
+      };
+  seo?:
+    | T
+    | {
+        defaultTitle?: T;
+        defaultDescription?: T;
+        defaultImage?: T;
+        keywords?: T;
+      };
+  contact?:
+    | T
+    | {
+        companyName?: T;
+        email?: T;
+        phone?: T;
+        address?:
+          | T
+          | {
+              street?: T;
+              city?: T;
+              postalCode?: T;
+              country?: T;
+            };
+        openingHours?: T;
+      };
+  socialMedia?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        linkedin?: T;
+        twitter?: T;
+        youtube?: T;
+      };
+  analytics?:
+    | T
+    | {
+        googleAnalyticsId?: T;
+        googleTagManagerId?: T;
+        facebookPixelId?: T;
+        customScripts?:
+          | T
+          | {
+              headScript?: T;
+              bodyScript?: T;
+            };
+      };
+  additional?:
+    | T
+    | {
+        maintenanceMode?: T;
+        maintenanceMessage?: T;
+        cookieConsent?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  name?: T;
+  tenant?: T;
+  menuItems?:
+    | T
+    | {
+        type?: T;
+        label?: T;
+        page?: T;
+        url?: T;
+        openInNewTab?: T;
+        children?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              page?: T;
+              url?: T;
+              description?: T;
+              id?: T;
+            };
+        icon?: T;
+        id?: T;
+      };
+  logoPosition?: T;
+  menuStyle?: T;
+  stickyHeader?: T;
+  ctaEnabled?: T;
+  ctaText?: T;
+  ctaLink?: T;
+  ctaStyle?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  tenant?: T;
+  layout?:
+    | T
+    | {
+        columns?: T;
+        showSocialMedia?: T;
+        showNewsletter?: T;
+      };
+  column1?:
+    | T
+    | {
+        title?: T;
+        content?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              page?: T;
+              url?: T;
+              id?: T;
+            };
+      };
+  column2?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              page?: T;
+              url?: T;
+              id?: T;
+            };
+      };
+  column3?:
+    | T
+    | {
+        title?: T;
+        showContactInfo?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              page?: T;
+              url?: T;
+              id?: T;
+            };
+      };
+  column4?:
+    | T
+    | {
+        title?: T;
+        content?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              type?: T;
+              page?: T;
+              url?: T;
+              id?: T;
+            };
+      };
+  bottomBar?:
+    | T
+    | {
+        copyrightText?: T;
+        legalLinks?:
+          | T
+          | {
+              label?: T;
+              page?: T;
+              id?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog_select".
+ */
+export interface BlogSelect<T extends boolean = true> {
+  tenant?: T;
+  title?: T;
+  slug?: T;
+  excerpt?: T;
+  featuredImage?: T;
+  content?: T;
+  author?: T;
+  categories?: T;
+  tags?: T;
+  publishedDate?: T;
+  status?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        metaImage?: T;
+      };
+  readingTime?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

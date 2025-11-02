@@ -31,6 +31,74 @@ export const Tenants: CollectionConfig = {
       return user?.isSuperAdmin === true
     },
   },
+  hooks: {
+    afterCreate: [
+      // Auto-create Theme Settings and Site Settings for new tenant
+      async ({ doc, req }) => {
+        const { payload } = req
+
+        try {
+          // Create default Theme Settings
+          await payload.create({
+            collection: 'theme-settings',
+            data: {
+              tenant: doc.id,
+              template: 'modern',
+              colors: {
+                primary: '#1E40AF',
+                secondary: '#64748B',
+                accent: '#F59E0B',
+                background: '#FFFFFF',
+              },
+              typography: {
+                headingFont: 'Montserrat',
+                bodyFont: 'Open Sans',
+              },
+              styling: {
+                borderRadius: 8,
+                buttonStyle: 'rounded',
+                shadowIntensity: 'subtle',
+              },
+            },
+          })
+
+          // Create default Site Settings
+          await payload.create({
+            collection: 'site-settings',
+            data: {
+              tenant: doc.id,
+              features: {
+                enableBlog: false,
+                enableTestimonials: true,
+                enableTeamPage: true,
+                enableContactForm: true,
+                enableNewsletter: false,
+                enableSearch: true,
+              },
+              seo: {
+                defaultTitle: doc.name,
+                defaultDescription: `Welkom bij ${doc.name}`,
+              },
+              contact: {
+                companyName: doc.name,
+                email: doc.metadata?.contactEmail || '',
+              },
+              additional: {
+                maintenanceMode: false,
+                cookieConsent: true,
+              },
+            },
+          })
+
+          console.log(`[Tenants] Auto-created settings for tenant: ${doc.name}`)
+        } catch (error) {
+          console.error(`[Tenants] Failed to create settings for tenant ${doc.name}:`, error)
+        }
+
+        return doc
+      },
+    ],
+  },
   fields: [
     {
       name: 'name',

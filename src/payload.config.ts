@@ -10,6 +10,12 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
+import { Pages } from './collections/Pages'
+import { ThemeSettings } from './collections/ThemeSettings'
+import { SiteSettings } from './collections/SiteSettings'
+import { Navigation } from './collections/Navigation'
+import { Footer } from './collections/Footer'
+import { Blog } from './collections/Blog'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -20,11 +26,8 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
-    components: {
-      beforeNavLinks: ['@/components/TenantSwitcher#TenantSwitcher'],
-    },
   },
-  collections: [Tenants, Users, Media],
+  collections: [Tenants, Users, Media, Pages, ThemeSettings, SiteSettings, Navigation, Footer, Blog],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -33,6 +36,24 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
+  localization: {
+    locales: [
+      {
+        code: 'en',
+        label: 'English',
+      },
+      {
+        code: 'nl',
+        label: 'Nederlands',
+      },
+      {
+        code: 'es',
+        label: 'Español',
+      },
+    ],
+    defaultLocale: 'nl',
+    fallback: true,
+  },
   sharp,
   plugins: [
     payloadCloudPlugin(),
