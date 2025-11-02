@@ -48,3 +48,15 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Documentation cache
+.payload-docs/
+payload-docs-scraped/
+
+# Temporary files
+cookies.txt
+final-check.mjs
+TESORO_IMPLEMENTATION_GUIDE.md
+
+# Auto-generated admin files
+/src/app/(payload)/admin/importMap.js
