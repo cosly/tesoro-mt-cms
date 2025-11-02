@@ -156,3 +156,192 @@ const { user } = await payload.auth({ headers })
 The project uses custom webpack configuration in `next.config.mjs` to handle TypeScript extension aliases (`.ts`, `.tsx`, `.mts`, etc.). This is required for Payload CMS integration.
 
 Memory is increased for builds (`--max-old-space-size=8000`) to handle large CMS builds.
+
+## Development Workflow & Best Practices
+
+### Visual Verification Required
+
+**IMPORTANT**: Always perform visual verification after making changes to collections, fields, or admin components.
+
+**Required steps:**
+1. Make code changes
+2. Generate types: `pnpm generate:types`
+3. **Visual verification** - Check admin panel to confirm changes work correctly
+4. **Report verification** - Always explicitly state "✅ Visueel gecontroleerd" in response
+5. Only then mark task as complete
+
+**How to verify:**
+- Open admin panel at http://localhost:3000/admin
+- Navigate to the changed collection/global
+- Verify tabs, fields, and components render correctly
+- Test localization if applicable
+- Check RowLabels if changed
+
+**Never skip visual verification.** Code that compiles is not the same as code that works correctly in the UI.
+
+## Internationalization (i18n)
+
+**IMPORTANT**: This project supports 5 languages in the Payload admin interface.
+
+### Supported Languages
+
+The admin UI and content support the following languages:
+- **Nederlands (nl)** - Default language
+- **English (en)**
+- **Español (es)**
+- **Deutsch (de)**
+- **Polski (pl)**
+
+### Admin UI i18n
+
+The Payload admin interface is configured to support all 5 languages in `payload.config.ts`:
+
+```typescript
+admin: {
+  i18n: {
+    supportedLanguages: {
+      en: 'English',
+      nl: 'Nederlands',
+      es: 'Español',
+      de: 'Deutsch',
+      pl: 'Polski',
+    },
+    fallbackLanguage: 'en',
+  },
+}
+```
+
+Payload's built-in UI elements (buttons, menus, labels) are automatically translated.
+
+### Custom Field Labels and Descriptions
+
+**CRITICAL**: When creating or modifying fields, ALL labels, descriptions, and placeholders MUST be translatable in all 5 languages.
+
+**Required for new fields:**
+1. Create translation files in `src/translations/` for each language
+2. Use translation keys instead of hardcoded strings
+3. Provide translations for:
+   - Field labels
+   - Field descriptions
+   - Placeholder text
+   - Help text
+   - Validation messages
+
+**Example structure:**
+```typescript
+// src/translations/nl.ts
+export const nl = {
+  fields: {
+    title: {
+      label: 'Titel',
+      description: 'De titel van deze pagina',
+      placeholder: 'Voer een titel in',
+    },
+  },
+}
+
+// src/translations/en.ts
+export const en = {
+  fields: {
+    title: {
+      label: 'Title',
+      description: 'The title of this page',
+      placeholder: 'Enter a title',
+    },
+  },
+}
+```
+
+**When to translate:**
+- ✅ Always when creating new collections
+- ✅ Always when adding new fields
+- ✅ Always when modifying field labels
+- ✅ Always when adding admin descriptions
+- ❌ Content itself (handled by `localized: true` on fields)
+
+### Content Localization
+
+Content fields can be localized using the `localized: true` property:
+
+```typescript
+{
+  name: 'title',
+  type: 'text',
+  localized: true,  // Editors can provide translations for each language
+}
+```
+
+This creates separate fields for each language in the database:
+```typescript
+{
+  title: {
+    nl: "Nederlandse titel",
+    en: "English title",
+    es: "Título en español",
+    de: "Deutscher Titel",
+    pl: "Polski tytuł"
+  }
+}
+```
+
+## Custom Admin Components
+
+### RowLabel Components for Array Fields
+
+**IMPORTANT**: In Payload 3.x, custom RowLabel components use the `useRowLabel` hook to access row data, NOT props.
+
+**Correct Implementation:**
+
+```typescript
+'use client'
+import { useRowLabel, useLocale } from '@payloadcms/ui'
+
+export const CustomRowLabel = () => {
+  const locale = useLocale()
+  const { data, rowNumber } = useRowLabel<{
+    label?: string | Record<string, string>  // Localized fields are objects
+    type?: string
+  }>()
+
+  // Extract localized value
+  const label = typeof data?.label === 'string'
+    ? data.label
+    : data?.label?.[locale?.code || 'nl']
+
+  return `${rowNumber + 1}. ${label || 'Empty'}`
+}
+```
+
+**Key Points:**
+
+1. **Must be a client component** - Use `'use client'` directive
+2. **Use `useRowLabel()` hook** - This provides reactive access to row data via React Context
+3. **Don't use props** - The `{ data }` prop pattern from Payload 2.x no longer works
+4. **Localized fields** - Are objects like `{ nl: "Text", en: "Text" }`, not plain strings
+5. **Use `useLocale()`** - To get current locale and extract the correct translation
+
+**Configuration in Collection:**
+
+```typescript
+{
+  name: 'items',
+  type: 'array',
+  fields: [
+    { name: 'label', type: 'text', localized: true },
+  ],
+  admin: {
+    components: {
+      RowLabel: '@/components/admin/CustomRowLabel#CustomRowLabel',
+    },
+  },
+}
+```
+
+**Available Hooks for Custom Components:**
+
+- `useRowLabel()` - Access current row data and row number
+- `useLocale()` - Get current locale selection
+- `useFormFields()` - Access other form fields
+- `useAllFormFields()` - Access all form state
+
+See `src/components/admin/ArrayRowLabels.tsx` for complete working examples.

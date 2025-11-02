@@ -1,0 +1,295 @@
+# Group Field
+
+URL: https://payloadcms.com/docs/fields/group
+Scraped: 2025-11-02T08:25:20.906Z
+
+Group Field
+
+The Group Field allows Fields to be nested under a common property name. It also groups fields together visually in the Admin Panel.
+
+Admin Panel screenshot of a Group field
+
+To add a Group Field, set the type to group in your Field Config:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyGroupField: Field = {
+4  // ...
+5  type: 'group',
+6  fields: [
+7    // ...
+8  ],
+9}
+Config Options
+
+Option
+
+	
+
+Description
+
+
+
+
+name
+
+	
+
+To be used as the property name when stored and retrieved from the database. More details.
+
+
+
+
+fields *
+
+	
+
+Array of field types to nest within this Group.
+
+
+
+
+label
+
+	
+
+Used as a heading in the Admin Panel and to name the generated GraphQL type. Defaults to the field name, if defined.
+
+
+
+
+validate
+
+	
+
+Provide a custom validation function that will be executed on both the Admin Panel and the backend. More details.
+
+
+
+
+saveToJWT
+
+	
+
+If this field is top-level and nested in a config supporting Authentication, include its data in the user JWT.
+
+
+
+
+hooks
+
+	
+
+Provide Field Hooks to control logic for this field. More details.
+
+
+
+
+access
+
+	
+
+Provide Field Access Control to denote what users can see and do with this field's data. More details.
+
+
+
+
+hidden
+
+	
+
+Restrict this field's visibility from all APIs entirely. Will still be saved to the database, but will not appear in any API or the Admin Panel.
+
+
+
+
+defaultValue
+
+	
+
+Provide an object of data to be used for this field's default value. More details.
+
+
+
+
+localized
+
+	
+
+Enable localization for this field. Requires localization to be enabled in the Base config. If enabled, a separate, localized set of all data within this Group will be kept, so there is no need to specify each nested field as localized.
+
+
+
+
+admin
+
+	
+
+Admin-specific configuration. More details.
+
+
+
+
+custom
+
+	
+
+Extension point for adding custom data (e.g. for plugins)
+
+
+
+
+interfaceName
+
+	
+
+Create a top level, reusable Typescript interface & GraphQL type.
+
+
+
+
+typescriptSchema
+
+	
+
+Override field type generation with providing a JSON schema
+
+
+
+
+virtual
+
+	
+
+Provide true to disable field in the database. See Virtual Fields
+
+* An asterisk denotes that a property is required.
+
+Admin Options
+
+To customize the appearance and behavior of the Group Field in the Admin Panel, you can use the admin option:
+
+1import type { Field } from 'payload'
+2
+
+3export const MyGroupField: Field = {
+4  // ...
+5  admin: {
+6    
+7    // ...
+8  },
+9}
+
+The Group Field inherits all of the default admin options from the base Field Admin Config, plus the following additional options:
+
+Option
+
+	
+
+Description
+
+
+
+
+hideGutter
+
+	
+
+Set this property to true to hide this field's gutter within the Admin Panel. The field gutter is rendered as a vertical line and padding, but often if this field is nested within a Group, Block, or Array, you may want to hide the gutter.
+
+Example
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      name: 'pageMeta',
+8      type: 'group', // required
+9      interfaceName: 'Meta', // optional
+10      fields: [
+11        // required
+12        {
+13          name: 'title',
+14          type: 'text',
+15          required: true,
+16          minLength: 20,
+17          maxLength: 100,
+18        },
+19        {
+20          name: 'description',
+21          type: 'textarea',
+22          required: true,
+23          minLength: 40,
+24          maxLength: 160,
+25        },
+26      ],
+27    },
+28  ],
+29}
+Presentational group fields
+
+You can also use the Group field to only visually group fields without affecting the data structure. Not defining a name will render just the grouped fields (no nested object is created). If you want the group to appear as a titled section in the Admin UI, set a label.
+
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      label: 'Page meta', // label only → presentational
+8      type: 'group', // required
+9      fields: [
+10        {
+11          name: 'title',
+12          type: 'text',
+13          required: true,
+14          minLength: 20,
+15          maxLength: 100,
+16        },
+17        {
+18          name: 'description',
+19          type: 'textarea',
+20          required: true,
+21          minLength: 40,
+22          maxLength: 160,
+23        },
+24      ],
+25    },
+26  ],
+27}
+Named group
+1import type { CollectionConfig } from 'payload'
+2
+
+3export const ExampleCollection: CollectionConfig = {
+4  slug: 'example-collection',
+5  fields: [
+6    {
+7      name: 'pageMeta', // name → nested object in data
+8      label: 'Page meta',
+9      type: 'group', // required
+10      fields: [
+11        {
+12          name: 'title',
+13          type: 'text',
+14          required: true,
+15          minLength: 20,
+16          maxLength: 100,
+17        },
+18        {
+19          name: 'description',
+20          type: 'textarea',
+21          required: true,
+22          minLength: 40,
+23          maxLength: 160,
+24        },
+25      ],
+26    },
+27  ],
+28}
+Next
+Number Field

@@ -1,0 +1,155 @@
+# Payload Concepts
+
+URL: https://payloadcms.com/docs/getting-started/concepts
+Scraped: 2025-11-02T08:24:22.206Z
+
+Payload Concepts
+
+Payload is based around a small and intuitive set of high-level concepts. Before starting to work with Payload, it's a good idea to familiarize yourself with these concepts in order to establish a common language and understanding when discussing Payload.
+
+Config
+
+The Payload Config is central to everything that Payload does. It allows for the deep configuration of your application through a simple and intuitive API. The Payload Config is a fully-typed JavaScript object that can be infinitely extended upon. More details.
+
+Database
+
+Payload is database agnostic, meaning you can use any type of database behind Payload's familiar APIs through what is known as a Database Adapter. More details.
+
+Collections
+
+A Collection is a group of records, called Documents, that all share a common schema. Each Collection is stored in the Database based on the Fields that you define. More details.
+
+Globals
+
+Globals are in many ways similar to Collections, except they correspond to only a single Document. Each Global is stored in the Database based on the Fields that you define. More details.
+
+Fields
+
+Fields are the building blocks of Payload. They define the schema of the Documents that will be stored in the Database, as well as automatically generate the corresponding UI within the Admin Panel. More details.
+
+Hooks
+
+Hooks allow you to execute your own side effects during specific events of the Document lifecycle, such as before read, after create, etc. More details.
+
+Authentication
+
+Payload provides a secure, portable way to manage user accounts out of the box. Payload Authentication is designed to be used in both the Admin Panel, as well as your own external applications. More details.
+
+Access Control
+
+Access Control determines what a user can and cannot do with any given Document, such as read, update, etc., as well as what they can and cannot see within the Admin Panel. More details.
+
+Admin Panel
+
+Payload dynamically generates a beautiful, fully type-safe interface to manage your users and data. The Admin Panel is a React application built using the Next.js App Router. More details.
+
+Retrieving Data
+
+Everything Payload does (create, read, update, delete, login, logout, etc.) is exposed to you via three APIs:
+
+Local API - Extremely fast, direct-to-database access
+REST API - Standard HTTP endpoints for querying and mutating data
+GraphQL - A full GraphQL API with a GraphQL Playground
+
+Note: All of these APIs share the exact same query language. More details.
+
+Local API
+
+By far one of the most powerful aspects of Payload is the fact that it gives you direct-to-database access to your data through the Local API. It's extremely fast and does not incur any typical HTTP overhead—you query your database directly in Node.js.
+
+The Local API is written in TypeScript, and so it is strongly typed and extremely nice to use. It works anywhere on the server, including custom Next.js Routes, Payload Hooks, Payload Access Control, and React Server Components.
+
+Here's a quick example of a React Server Component fetching data using the Local API:
+
+1import React from 'react'
+2import config from '@payload-config'
+3import { getPayload } from 'payload'
+4
+
+5const MyServerComponent: React.FC = () => {
+6  const payload = await getPayload({ config })
+7
+
+8  // The `findResult` here will be fully typed as `PaginatedDocs<Page>`,
+9  // where you will have the `docs` that are returned as well as
+10  // information about how many items are returned / are available in total / etc
+11  const findResult = await payload.find({ collection: 'pages' })
+12
+
+13  return (
+14    <ul>
+15      {findResult.docs.map((page) => {
+16        // Render whatever here!
+17        // The `page` is fully typed as your Pages collection!
+18      })}
+19    </ul>
+20  )
+21}
+
+For more information about the Local API, click here.
+
+REST API
+
+By default, the Payload REST API is mounted automatically for you at the /api path of your app.
+
+For example, if you have a Collection called pages:
+
+1fetch('https://localhost:3000/api/pages') 
+2  .then((res) => res.json())
+3  .then((data) => console.log(data))
+
+For more information about the REST API, click here.
+
+GraphQL API
+
+Payload automatically exposes GraphQL queries and mutations through a dedicated GraphQL API. By default, the GraphQL route handler is mounted at the /api/graphql path of your app. You'll also find a full GraphQL Playground which can be accessible at the /api/graphql-playground path of your app.
+
+You can use any GraphQL client with Payload's GraphQL endpoint. Here are a few packages:
+
+graphql-request - a very lightweight GraphQL client
+@apollo/client - an industry-standard GraphQL client with lots of nice features
+
+For more information about the GraphQL API, click here.
+
+Package Structure
+
+Payload is abstracted into a set of dedicated packages to keep the core payload package as lightweight as possible. This allows you to only install the parts of Payload based on your unique project requirements.
+
+Important: Version numbers of all official Payload packages are always published in sync. You should make sure that you always use matching versions for all official Payload packages.
+
+payload
+
+The payload package is where core business logic for Payload lives. You can think of Payload as an ORM with superpowers—it contains the logic for all Payload "operations" like find, create, update, and delete and exposes a Local API. It executes Access Control, Hooks, Validation, and more.
+
+Payload itself is extremely compact, and can be used in any Node environment. As long as you have payload installed and you have access to your Payload Config, you can query and mutate your database directly without going through an unnecessary HTTP layer.
+
+Payload also contains all TypeScript definitions, which can be imported from payload directly.
+
+Here's how to import some common Payload types:
+
+1import { Config, CollectionConfig, GlobalConfig, Field } from 'payload'
+
+@payloadcms/next
+
+Whereas Payload itself is responsible for direct database access, and control over Payload business logic, the @payloadcms/next package is responsible for the Admin Panel and the entire HTTP layer that Payload exposes, including the REST API and GraphQL API.
+
+@payloadcms/graphql
+
+All of Payload's GraphQL functionality is abstracted into a separate package. Payload, its Admin UI, and REST API have absolutely no overlap with GraphQL, and you will incur no performance overhead from GraphQL if you are not using it. However, it's installed within the @payloadcms/next package so you don't have to install it manually. You do, however, need to have GraphQL installed separately in your package.json if you are using GraphQL.
+
+@payloadcms/ui
+
+This is the UI library that Payload's Admin Panel uses. All components are exported from this package and can be re-used as you build extensions to the Payload admin UI, or want to use Payload components in your own React apps. Some exports are server components and some are client components.
+
+@payloadcms/db-postgres, @payloadcms/db-vercel-postgres, @payloadcms/db-mongodb, @payloadcms/db-sqlite
+
+You can choose which Database Adapter you'd like to use for your project, and no matter which you choose, the entire data layer for Payload is contained within these packages. You can only use one at a time for any given project.
+
+@payloadcms/richtext-lexical, @payloadcms/richtext-slate
+
+Payload's Rich Text functionality is abstracted into separate packages and if you want to enable Rich Text in your project, you'll need to install one of these packages. We recommend Lexical for all new projects, and this is where Payload will focus its efforts on from this point, but Slate is still supported if you have already built with it.
+
+Note: Rich Text is entirely optional and you may not need it for your project.
+
+Next
+Installation
