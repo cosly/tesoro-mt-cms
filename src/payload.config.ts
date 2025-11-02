@@ -11,7 +11,6 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Tenants } from './collections/Tenants'
 import { Pages } from './collections/Pages'
-import { ThemeSettings } from './collections/ThemeSettings'
 import { SiteSettings } from './collections/SiteSettings'
 import { Navigation } from './collections/Navigation'
 import { Footer } from './collections/Footer'
@@ -50,7 +49,7 @@ export default buildConfig({
     fallbackLanguage: 'en',
     translations: payloadTranslations,
   },
-  collections: [Tenants, Users, Media, Pages, ThemeSettings, SiteSettings, Navigation, Footer, Blog],
+  collections: [Tenants, Users, Media, Pages, SiteSettings, Navigation, Footer, Blog],
   globals: [Home, Contact],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

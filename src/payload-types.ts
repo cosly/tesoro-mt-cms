@@ -71,7 +71,6 @@ export interface Config {
     users: User;
     media: Media;
     pages: Page;
-    'theme-settings': ThemeSetting;
     'site-settings': SiteSetting;
     navigation: Navigation;
     footer: Footer;
@@ -87,7 +86,6 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
-    'theme-settings': ThemeSettingsSelect<false> | ThemeSettingsSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
@@ -436,102 +434,7 @@ export interface Page {
   createdAt: string;
 }
 /**
- * Customize your website styling and branding
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "theme-settings".
- */
-export interface ThemeSetting {
-  id: string;
-  /**
-   * The tenant these settings belong to
-   */
-  tenant?: (string | null) | Tenant;
-  /**
-   * Choose your website template style
-   */
-  template: 'modern' | 'classic' | 'minimal' | 'luxury';
-  colors: {
-    /**
-     * Primary brand color (e.g., #1E40AF)
-     */
-    primary: string;
-    /**
-     * Secondary accent color (e.g., #64748B)
-     */
-    secondary: string;
-    /**
-     * Accent/highlight color (e.g., #F59E0B)
-     */
-    accent: string;
-    /**
-     * Background color (e.g., #FFFFFF)
-     */
-    background: string;
-  };
-  typography: {
-    /**
-     * Font for headings (H1, H2, H3, etc.)
-     */
-    headingFont:
-      | 'Montserrat'
-      | 'Playfair Display'
-      | 'Roboto'
-      | 'Open Sans'
-      | 'Lato'
-      | 'Poppins'
-      | 'Inter'
-      | 'Raleway'
-      | 'Merriweather'
-      | 'Oswald';
-    /**
-     * Font for body text and paragraphs
-     */
-    bodyFont:
-      | 'Open Sans'
-      | 'Lato'
-      | 'Roboto'
-      | 'Inter'
-      | 'Montserrat'
-      | 'Poppins'
-      | 'Source Sans Pro'
-      | 'Nunito'
-      | 'PT Sans'
-      | 'Work Sans';
-  };
-  branding?: {
-    /**
-     * Main logo (used in header)
-     */
-    logo?: (string | null) | Media;
-    /**
-     * Footer logo (optional, uses main logo if not set)
-     */
-    logoFooter?: (string | null) | Media;
-    /**
-     * Favicon (16x16 or 32x32 .ico or .png)
-     */
-    favicon?: (string | null) | Media;
-  };
-  styling: {
-    /**
-     * Border radius for buttons and cards (0-20px)
-     */
-    borderRadius: number;
-    /**
-     * Button shape style
-     */
-    buttonStyle: 'rounded' | 'square' | 'pill';
-    /**
-     * Shadow intensity for cards and elements
-     */
-    shadowIntensity: 'none' | 'subtle' | 'medium' | 'strong';
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Configure website features and general settings
+ * Configure website features, theme, and general settings
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings".
@@ -699,6 +602,86 @@ export interface SiteSetting {
      * Show cookie consent banner (GDPR compliance)
      */
     cookieConsent?: boolean | null;
+  };
+  /**
+   * Choose your website template style
+   */
+  template: 'modern' | 'classic' | 'minimal' | 'luxury';
+  colors: {
+    /**
+     * Primary brand color (e.g., #1E40AF)
+     */
+    primary: string;
+    /**
+     * Secondary accent color (e.g., #64748B)
+     */
+    secondary: string;
+    /**
+     * Accent/highlight color (e.g., #F59E0B)
+     */
+    accent: string;
+    /**
+     * Background color (e.g., #FFFFFF)
+     */
+    background: string;
+  };
+  typography: {
+    /**
+     * Font for headings (H1, H2, H3, etc.)
+     */
+    headingFont:
+      | 'Montserrat'
+      | 'Playfair Display'
+      | 'Roboto'
+      | 'Open Sans'
+      | 'Lato'
+      | 'Poppins'
+      | 'Inter'
+      | 'Raleway'
+      | 'Merriweather'
+      | 'Oswald';
+    /**
+     * Font for body text and paragraphs
+     */
+    bodyFont:
+      | 'Open Sans'
+      | 'Lato'
+      | 'Roboto'
+      | 'Inter'
+      | 'Montserrat'
+      | 'Poppins'
+      | 'Source Sans Pro'
+      | 'Nunito'
+      | 'PT Sans'
+      | 'Work Sans';
+  };
+  branding?: {
+    /**
+     * Main logo (used in header)
+     */
+    logo?: (string | null) | Media;
+    /**
+     * Footer logo (optional, uses main logo if not set)
+     */
+    logoFooter?: (string | null) | Media;
+    /**
+     * Favicon (16x16 or 32x32 .ico or .png)
+     */
+    favicon?: (string | null) | Media;
+  };
+  styling: {
+    /**
+     * Border radius for buttons and cards (0-20px)
+     */
+    borderRadius: number;
+    /**
+     * Button shape style
+     */
+    buttonStyle: 'rounded' | 'square' | 'pill';
+    /**
+     * Shadow intensity for cards and elements
+     */
+    shadowIntensity: 'none' | 'subtle' | 'medium' | 'strong';
   };
   updatedAt: string;
   createdAt: string;
@@ -997,10 +980,6 @@ export interface PayloadLockedDocument {
         value: string | Page;
       } | null)
     | ({
-        relationTo: 'theme-settings';
-        value: string | ThemeSetting;
-      } | null)
-    | ({
         relationTo: 'site-settings';
         value: string | SiteSetting;
       } | null)
@@ -1288,44 +1267,6 @@ export interface PagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "theme-settings_select".
- */
-export interface ThemeSettingsSelect<T extends boolean = true> {
-  tenant?: T;
-  template?: T;
-  colors?:
-    | T
-    | {
-        primary?: T;
-        secondary?: T;
-        accent?: T;
-        background?: T;
-      };
-  typography?:
-    | T
-    | {
-        headingFont?: T;
-        bodyFont?: T;
-      };
-  branding?:
-    | T
-    | {
-        logo?: T;
-        logoFooter?: T;
-        favicon?: T;
-      };
-  styling?:
-    | T
-    | {
-        borderRadius?: T;
-        buttonStyle?: T;
-        shadowIntensity?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
@@ -1405,6 +1346,35 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         maintenanceMode?: T;
         maintenanceMessage?: T;
         cookieConsent?: T;
+      };
+  template?: T;
+  colors?:
+    | T
+    | {
+        primary?: T;
+        secondary?: T;
+        accent?: T;
+        background?: T;
+      };
+  typography?:
+    | T
+    | {
+        headingFont?: T;
+        bodyFont?: T;
+      };
+  branding?:
+    | T
+    | {
+        logo?: T;
+        logoFooter?: T;
+        favicon?: T;
+      };
+  styling?:
+    | T
+    | {
+        borderRadius?: T;
+        buttonStyle?: T;
+        shadowIntensity?: T;
       };
   updatedAt?: T;
   createdAt?: T;
