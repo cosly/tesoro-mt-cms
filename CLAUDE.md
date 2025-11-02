@@ -156,3 +156,87 @@ const { user } = await payload.auth({ headers })
 The project uses custom webpack configuration in `next.config.mjs` to handle TypeScript extension aliases (`.ts`, `.tsx`, `.mts`, etc.). This is required for Payload CMS integration.
 
 Memory is increased for builds (`--max-old-space-size=8000`) to handle large CMS builds.
+
+## Development Workflow & Best Practices
+
+### Visual Verification Required
+
+**IMPORTANT**: Always perform visual verification after making changes to collections, fields, or admin components.
+
+**Required steps:**
+1. Make code changes
+2. Generate types: `pnpm generate:types`
+3. **Visual verification** - Check admin panel to confirm changes work correctly
+4. **Report verification** - Always explicitly state "✅ Visueel gecontroleerd" in response
+5. Only then mark task as complete
+
+**How to verify:**
+- Open admin panel at http://localhost:3000/admin
+- Navigate to the changed collection/global
+- Verify tabs, fields, and components render correctly
+- Test localization if applicable
+- Check RowLabels if changed
+
+**Never skip visual verification.** Code that compiles is not the same as code that works correctly in the UI.
+
+## Custom Admin Components
+
+### RowLabel Components for Array Fields
+
+**IMPORTANT**: In Payload 3.x, custom RowLabel components use the `useRowLabel` hook to access row data, NOT props.
+
+**Correct Implementation:**
+
+```typescript
+'use client'
+import { useRowLabel, useLocale } from '@payloadcms/ui'
+
+export const CustomRowLabel = () => {
+  const locale = useLocale()
+  const { data, rowNumber } = useRowLabel<{
+    label?: string | Record<string, string>  // Localized fields are objects
+    type?: string
+  }>()
+
+  // Extract localized value
+  const label = typeof data?.label === 'string'
+    ? data.label
+    : data?.label?.[locale?.code || 'nl']
+
+  return `${rowNumber + 1}. ${label || 'Empty'}`
+}
+```
+
+**Key Points:**
+
+1. **Must be a client component** - Use `'use client'` directive
+2. **Use `useRowLabel()` hook** - This provides reactive access to row data via React Context
+3. **Don't use props** - The `{ data }` prop pattern from Payload 2.x no longer works
+4. **Localized fields** - Are objects like `{ nl: "Text", en: "Text" }`, not plain strings
+5. **Use `useLocale()`** - To get current locale and extract the correct translation
+
+**Configuration in Collection:**
+
+```typescript
+{
+  name: 'items',
+  type: 'array',
+  fields: [
+    { name: 'label', type: 'text', localized: true },
+  ],
+  admin: {
+    components: {
+      RowLabel: '@/components/admin/CustomRowLabel#CustomRowLabel',
+    },
+  },
+}
+```
+
+**Available Hooks for Custom Components:**
+
+- `useRowLabel()` - Access current row data and row number
+- `useLocale()` - Get current locale selection
+- `useFormFields()` - Access other form fields
+- `useAllFormFields()` - Access all form state
+
+See `src/components/admin/ArrayRowLabels.tsx` for complete working examples.

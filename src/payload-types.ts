@@ -100,8 +100,14 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    home: Home;
+    contact: Contact;
+  };
+  globalsSelect: {
+    home: HomeSelect<false> | HomeSelect<true>;
+    contact: ContactSelect<false> | ContactSelect<true>;
+  };
   locale: 'en' | 'nl' | 'es';
   user: User & {
     collection: 'users';
@@ -358,9 +364,6 @@ export interface Page {
           }
       )[]
     | null;
-  /**
-   * Control where this page appears in menus
-   */
   navigation?: {
     /**
      * Display this page in the main navigation menu
@@ -387,23 +390,63 @@ export interface Page {
      */
     footerOrder?: number | null;
   };
+  /**
+   * Optimize how this page appears in search engines and social media
+   */
   seo?: {
     /**
-     * Page title for search engines (60 chars recommended)
+     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
      */
-    metaTitle?: string | null;
+    title?: string | null;
     /**
-     * Page description for search engines (160 chars recommended)
+     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
      */
-    metaDescription?: string | null;
+    description?: string | null;
     /**
-     * Image for social media sharing (Open Graph)
+     * Laat leeg om Meta Title te gebruiken.
      */
-    metaImage?: (string | null) | Media;
+    ogTitle?: string | null;
     /**
-     * Comma-separated keywords
+     * Laat leeg om Meta Description te gebruiken.
      */
-    keywords?: string | null;
+    ogDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     */
+    ogImage?: (string | null) | Media;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     */
+    twitterImage?: (string | null) | Media;
+    twitterCard?: ('summary_large_image' | 'summary') | null;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    whatsappTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    whatsappDescription?: string | null;
+    /**
+     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Verberg deze pagina van zoekmachines
+     */
+    noIndex?: boolean | null;
+    /**
+     * Volg links op deze pagina niet
+     */
+    noFollow?: boolean | null;
   };
   /**
    * Publishing status
@@ -722,10 +765,6 @@ export interface Navigation {
               id?: string | null;
             }[]
           | null;
-        /**
-         * Optional icon name (e.g., "home", "info")
-         */
-        icon?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1255,10 +1294,20 @@ export interface PagesSelect<T extends boolean = true> {
   seo?:
     | T
     | {
-        metaTitle?: T;
-        metaDescription?: T;
-        metaImage?: T;
-        keywords?: T;
+        title?: T;
+        description?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        twitterCard?: T;
+        whatsappTitle?: T;
+        whatsappDescription?: T;
+        canonicalUrl?: T;
+        noIndex?: T;
+        noFollow?: T;
       };
   status?: T;
   updatedAt?: T;
@@ -1412,7 +1461,6 @@ export interface NavigationSelect<T extends boolean = true> {
               description?: T;
               id?: T;
             };
-        icon?: T;
         id?: T;
       };
   logoPosition?: T;
@@ -1578,6 +1626,318 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Configure your homepage content and SEO
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: string;
+  hero: {
+    title: string;
+    subtitle?: string | null;
+    /**
+     * Hero achtergrond afbeelding
+     */
+    backgroundImage?: (string | null) | Media;
+    primaryButton: {
+      text: string;
+      link: string;
+    };
+    secondaryButton?: {
+      enabled?: boolean | null;
+      text?: string | null;
+      link?: string | null;
+    };
+  };
+  featuredProperties?: {
+    enabled?: boolean | null;
+    title?: string | null;
+    subtitle?: string | null;
+    /**
+     * Aantal woningen om te tonen
+     */
+    maxProperties?: number | null;
+  };
+  /**
+   * Optimize how this page appears in search engines and social media
+   */
+  seo?: {
+    /**
+     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
+     */
+    title?: string | null;
+    /**
+     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
+     */
+    description?: string | null;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    ogTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    ogDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     */
+    ogImage?: (string | null) | Media;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     */
+    twitterImage?: (string | null) | Media;
+    twitterCard?: ('summary_large_image' | 'summary') | null;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    whatsappTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    whatsappDescription?: string | null;
+    /**
+     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Verberg deze pagina van zoekmachines
+     */
+    noIndex?: boolean | null;
+    /**
+     * Volg links op deze pagina niet
+     */
+    noFollow?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Configure your contact page and company information
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact".
+ */
+export interface Contact {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  companyName: string;
+  address: {
+    street: string;
+    postalCode: string;
+    city: string;
+    country?: string | null;
+  };
+  phone: string;
+  email: string;
+  /**
+   * Kamer van Koophandel nummer
+   */
+  kvkNumber?: string | null;
+  /**
+   * BTW identificatienummer
+   */
+  btwNumber?: string | null;
+  openingHours?:
+    | {
+        day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+        openTime: string;
+        closeTime: string;
+        closed?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  socialMedia?: {
+    facebook?: string | null;
+    instagram?: string | null;
+    linkedin?: string | null;
+    twitter?: string | null;
+  };
+  /**
+   * Optimize how this page appears in search engines and social media
+   */
+  seo?: {
+    /**
+     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
+     */
+    title?: string | null;
+    /**
+     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
+     */
+    description?: string | null;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    ogTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    ogDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     */
+    ogImage?: (string | null) | Media;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     */
+    twitterImage?: (string | null) | Media;
+    twitterCard?: ('summary_large_image' | 'summary') | null;
+    /**
+     * Laat leeg om Meta Title te gebruiken.
+     */
+    whatsappTitle?: string | null;
+    /**
+     * Laat leeg om Meta Description te gebruiken.
+     */
+    whatsappDescription?: string | null;
+    /**
+     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Verberg deze pagina van zoekmachines
+     */
+    noIndex?: boolean | null;
+    /**
+     * Volg links op deze pagina niet
+     */
+    noFollow?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        title?: T;
+        subtitle?: T;
+        backgroundImage?: T;
+        primaryButton?:
+          | T
+          | {
+              text?: T;
+              link?: T;
+            };
+        secondaryButton?:
+          | T
+          | {
+              enabled?: T;
+              text?: T;
+              link?: T;
+            };
+      };
+  featuredProperties?:
+    | T
+    | {
+        enabled?: T;
+        title?: T;
+        subtitle?: T;
+        maxProperties?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        twitterCard?: T;
+        whatsappTitle?: T;
+        whatsappDescription?: T;
+        canonicalUrl?: T;
+        noIndex?: T;
+        noFollow?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact_select".
+ */
+export interface ContactSelect<T extends boolean = true> {
+  title?: T;
+  subtitle?: T;
+  companyName?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        postalCode?: T;
+        city?: T;
+        country?: T;
+      };
+  phone?: T;
+  email?: T;
+  kvkNumber?: T;
+  btwNumber?: T;
+  openingHours?:
+    | T
+    | {
+        day?: T;
+        openTime?: T;
+        closeTime?: T;
+        closed?: T;
+        id?: T;
+      };
+  socialMedia?:
+    | T
+    | {
+        facebook?: T;
+        instagram?: T;
+        linkedin?: T;
+        twitter?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        ogImage?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        twitterCard?: T;
+        whatsappTitle?: T;
+        whatsappDescription?: T;
+        canonicalUrl?: T;
+        noIndex?: T;
+        noFollow?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

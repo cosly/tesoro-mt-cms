@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { tenantAdminOnly, tenantRead } from '@/access'
+import { seoFields } from '@/fields/seo'
 
 /**
  * Pages Collection
@@ -46,39 +47,45 @@ export const Pages: CollectionConfig = {
       },
     },
     {
-      name: 'title',
-      type: 'text',
-      required: true,
-      localized: true,
-      admin: {
-        description: 'Page title (e.g., "About Us", "Contact")',
-      },
-    },
-    {
-      name: 'slug',
-      type: 'text',
-      required: true,
-      index: true,
-      admin: {
-        description: 'URL-friendly slug (e.g., "about-us", "contact")',
-      },
-      validate: (value: string | null | undefined) => {
-        // Validate slug format
-        if (!value || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
-          return 'Slug must be lowercase alphanumeric with hyphens only (e.g., "about-us")'
-        }
-        return true
-      },
-    },
-    // Block-based Content Builder
-    {
-      name: 'blocks',
-      type: 'blocks',
-      label: 'Page Content',
-      admin: {
-        description: 'Build your page using content blocks',
-      },
-      blocks: [
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            {
+              name: 'title',
+              type: 'text',
+              required: true,
+              localized: true,
+              admin: {
+                description: 'Page title (e.g., "About Us", "Contact")',
+              },
+            },
+            {
+              name: 'slug',
+              type: 'text',
+              required: true,
+              index: true,
+              admin: {
+                description: 'URL-friendly slug (e.g., "about-us", "contact")',
+              },
+              validate: (value: string | null | undefined) => {
+                // Validate slug format
+                if (!value || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
+                  return 'Slug must be lowercase alphanumeric with hyphens only (e.g., "about-us")'
+                }
+                return true
+              },
+            },
+            // Block-based Content Builder
+            {
+              name: 'blocks',
+              type: 'blocks',
+              label: 'Page Content',
+              admin: {
+                description: 'Build your page using content blocks',
+              },
+              blocks: [
         // Hero Block
         {
           slug: 'hero',
@@ -574,116 +581,85 @@ export const Pages: CollectionConfig = {
             },
           ],
         },
-      ],
-    },
-    // Navigation Settings
-    {
-      name: 'navigation',
-      type: 'group',
-      label: 'Navigation & Footer',
-      admin: {
-        description: 'Control where this page appears in menus',
-      },
-      fields: [
-        {
-          name: 'showInNavigation',
-          type: 'checkbox',
-          label: 'Show in Main Navigation',
-          defaultValue: false,
-          admin: {
-            description: 'Display this page in the main navigation menu',
-          },
-        },
-        {
-          name: 'navigationLabel',
-          type: 'text',
-          localized: true,
-          admin: {
-            description: 'Custom label for navigation (uses page title if empty)',
-            placeholder: 'Leave empty to use page title',
-            condition: (data, siblingData) => siblingData.showInNavigation === true,
-          },
-        },
-        {
-          name: 'navigationOrder',
-          type: 'number',
-          admin: {
-            description: 'Order in navigation (lower numbers appear first)',
-            step: 1,
-            condition: (data, siblingData) => siblingData.showInNavigation === true,
-          },
-        },
-        {
-          name: 'showInFooter',
-          type: 'checkbox',
-          label: 'Show in Footer',
-          defaultValue: false,
-          admin: {
-            description: 'Display this page in the footer',
-          },
-        },
-        {
-          name: 'footerColumn',
-          type: 'select',
-          options: [
-            { label: 'Column 1', value: 'col1' },
-            { label: 'Column 2', value: 'col2' },
-            { label: 'Column 3', value: 'col3' },
-            { label: 'Column 4', value: 'col4' },
+              ],
+            },
           ],
-          admin: {
-            description: 'Which footer column to display this page in',
-            condition: (data, siblingData) => siblingData.showInFooter === true,
-          },
         },
         {
-          name: 'footerOrder',
-          type: 'number',
-          admin: {
-            description: 'Order within footer column (lower numbers appear first)',
-            step: 1,
-            condition: (data, siblingData) => siblingData.showInFooter === true,
-          },
+          label: 'Navigation & Footer',
+          description: 'Control where this page appears in menus',
+          fields: [
+            {
+              name: 'navigation',
+              type: 'group',
+              fields: [
+                {
+                  name: 'showInNavigation',
+                  type: 'checkbox',
+                  label: 'Show in Main Navigation',
+                  defaultValue: false,
+                  admin: {
+                    description: 'Display this page in the main navigation menu',
+                  },
+                },
+                {
+                  name: 'navigationLabel',
+                  type: 'text',
+                  localized: true,
+                  admin: {
+                    description: 'Custom label for navigation (uses page title if empty)',
+                    placeholder: 'Leave empty to use page title',
+                    condition: (data, siblingData) => siblingData.showInNavigation === true,
+                  },
+                },
+                {
+                  name: 'navigationOrder',
+                  type: 'number',
+                  admin: {
+                    description: 'Order in navigation (lower numbers appear first)',
+                    step: 1,
+                    condition: (data, siblingData) => siblingData.showInNavigation === true,
+                  },
+                },
+                {
+                  name: 'showInFooter',
+                  type: 'checkbox',
+                  label: 'Show in Footer',
+                  defaultValue: false,
+                  admin: {
+                    description: 'Display this page in the footer',
+                  },
+                },
+                {
+                  name: 'footerColumn',
+                  type: 'select',
+                  options: [
+                    { label: 'Column 1', value: 'col1' },
+                    { label: 'Column 2', value: 'col2' },
+                    { label: 'Column 3', value: 'col3' },
+                    { label: 'Column 4', value: 'col4' },
+                  ],
+                  admin: {
+                    description: 'Which footer column to display this page in',
+                    condition: (data, siblingData) => siblingData.showInFooter === true,
+                  },
+                },
+                {
+                  name: 'footerOrder',
+                  type: 'number',
+                  admin: {
+                    description: 'Order within footer column (lower numbers appear first)',
+                    step: 1,
+                    condition: (data, siblingData) => siblingData.showInFooter === true,
+                  },
+                },
+              ],
+            },
+          ],
         },
-      ],
-    },
-    // SEO Fields
-    {
-      name: 'seo',
-      type: 'group',
-      label: 'SEO',
-      fields: [
         {
-          name: 'metaTitle',
-          type: 'text',
-          localized: true,
-          admin: {
-            description: 'Page title for search engines (60 chars recommended)',
-          },
-        },
-        {
-          name: 'metaDescription',
-          type: 'textarea',
-          localized: true,
-          admin: {
-            description: 'Page description for search engines (160 chars recommended)',
-          },
-        },
-        {
-          name: 'metaImage',
-          type: 'upload',
-          relationTo: 'media',
-          admin: {
-            description: 'Image for social media sharing (Open Graph)',
-          },
-        },
-        {
-          name: 'keywords',
-          type: 'text',
-          localized: true,
-          admin: {
-            description: 'Comma-separated keywords',
-          },
+          label: 'SEO',
+          fields: [seoFields],
         },
       ],
     },

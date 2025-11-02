@@ -187,14 +187,6 @@ export const Navigation: CollectionConfig = {
                     },
                   ],
                 },
-                {
-                  name: 'icon',
-                  type: 'text',
-                  admin: {
-                    description: 'Optional icon name (e.g., "home", "info")',
-                    placeholder: 'home',
-                  },
-                },
               ],
             },
           ],
