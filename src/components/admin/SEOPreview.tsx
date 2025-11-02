@@ -107,6 +107,7 @@ export const SEOPreview: React.FC = () => {
         backgroundColor: '#fafafa',
         borderRadius: '4px',
         fontSize: '13px',
+        marginTop: '24px',
       }}
     >
       <h3

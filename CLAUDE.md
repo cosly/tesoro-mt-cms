@@ -179,6 +179,111 @@ Memory is increased for builds (`--max-old-space-size=8000`) to handle large CMS
 
 **Never skip visual verification.** Code that compiles is not the same as code that works correctly in the UI.
 
+## Internationalization (i18n)
+
+**IMPORTANT**: This project supports 5 languages in the Payload admin interface.
+
+### Supported Languages
+
+The admin UI and content support the following languages:
+- **Nederlands (nl)** - Default language
+- **English (en)**
+- **Español (es)**
+- **Deutsch (de)**
+- **Polski (pl)**
+
+### Admin UI i18n
+
+The Payload admin interface is configured to support all 5 languages in `payload.config.ts`:
+
+```typescript
+admin: {
+  i18n: {
+    supportedLanguages: {
+      en: 'English',
+      nl: 'Nederlands',
+      es: 'Español',
+      de: 'Deutsch',
+      pl: 'Polski',
+    },
+    fallbackLanguage: 'en',
+  },
+}
+```
+
+Payload's built-in UI elements (buttons, menus, labels) are automatically translated.
+
+### Custom Field Labels and Descriptions
+
+**CRITICAL**: When creating or modifying fields, ALL labels, descriptions, and placeholders MUST be translatable in all 5 languages.
+
+**Required for new fields:**
+1. Create translation files in `src/translations/` for each language
+2. Use translation keys instead of hardcoded strings
+3. Provide translations for:
+   - Field labels
+   - Field descriptions
+   - Placeholder text
+   - Help text
+   - Validation messages
+
+**Example structure:**
+```typescript
+// src/translations/nl.ts
+export const nl = {
+  fields: {
+    title: {
+      label: 'Titel',
+      description: 'De titel van deze pagina',
+      placeholder: 'Voer een titel in',
+    },
+  },
+}
+
+// src/translations/en.ts
+export const en = {
+  fields: {
+    title: {
+      label: 'Title',
+      description: 'The title of this page',
+      placeholder: 'Enter a title',
+    },
+  },
+}
+```
+
+**When to translate:**
+- ✅ Always when creating new collections
+- ✅ Always when adding new fields
+- ✅ Always when modifying field labels
+- ✅ Always when adding admin descriptions
+- ❌ Content itself (handled by `localized: true` on fields)
+
+### Content Localization
+
+Content fields can be localized using the `localized: true` property:
+
+```typescript
+{
+  name: 'title',
+  type: 'text',
+  localized: true,  // Editors can provide translations for each language
+}
+```
+
+This creates separate fields for each language in the database:
+```typescript
+{
+  title: {
+    nl: "Nederlandse titel",
+    en: "English title",
+    es: "Título en español",
+    de: "Deutscher Titel",
+    pl: "Polski tytuł"
+  }
+}
+```
+
 ## Custom Admin Components
 
 ### RowLabel Components for Array Fields

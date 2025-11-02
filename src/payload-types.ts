@@ -108,7 +108,7 @@ export interface Config {
     home: HomeSelect<false> | HomeSelect<true>;
     contact: ContactSelect<false> | ContactSelect<true>;
   };
-  locale: 'en' | 'nl' | 'es';
+  locale: 'nl' | 'en' | 'es' | 'de' | 'pl';
   user: User & {
     collection: 'users';
   };
@@ -175,6 +175,8 @@ export interface Tenant {
  */
 export interface User {
   id: string;
+  firstName?: string | null;
+  lastName?: string | null;
   tenant?: (string | null) | Tenant;
   isSuperAdmin?: boolean | null;
   updatedAt: string;
@@ -364,89 +366,67 @@ export interface Page {
           }
       )[]
     | null;
-  navigation?: {
-    /**
-     * Display this page in the main navigation menu
-     */
-    showInNavigation?: boolean | null;
-    /**
-     * Custom label for navigation (uses page title if empty)
-     */
-    navigationLabel?: string | null;
-    /**
-     * Order in navigation (lower numbers appear first)
-     */
-    navigationOrder?: number | null;
-    /**
-     * Display this page in the footer
-     */
-    showInFooter?: boolean | null;
-    /**
-     * Which footer column to display this page in
-     */
-    footerColumn?: ('col1' | 'col2' | 'col3' | 'col4') | null;
-    /**
-     * Order within footer column (lower numbers appear first)
-     */
-    footerOrder?: number | null;
-  };
   /**
    * Optimize how this page appears in search engines and social media
    */
   seo?: {
     /**
-     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
+     * Optimal: 50-60 characters. Leave empty for auto-generated title.
      */
     title?: string | null;
     /**
-     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
+     * Optimal: 150-160 characters. Appears in search results.
      */
     description?: string | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     ogTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     ogDescription?: string | null;
     /**
-     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     * Recommended: 1200x630px. Leave empty for default image.
      */
     ogImage?: (string | null) | Media;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     twitterTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     twitterDescription?: string | null;
     /**
-     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     * Recommended: 1200x675px. Leave empty to use Facebook Image.
      */
     twitterImage?: (string | null) | Media;
     twitterCard?: ('summary_large_image' | 'summary') | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     whatsappTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     whatsappDescription?: string | null;
     /**
-     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     * Optional: Specify a custom canonical URL for duplicate content.
      */
     canonicalUrl?: string | null;
     /**
-     * Verberg deze pagina van zoekmachines
+     * Hide this page from search engines
      */
     noIndex?: boolean | null;
     /**
-     * Volg links op deze pagina niet
+     * Do not follow links on this page
      */
     noFollow?: boolean | null;
+    /**
+     * Hide this page from the XML sitemap
+     */
+    hideFromSitemap?: boolean | null;
   };
   /**
    * Publishing status
@@ -1112,6 +1092,8 @@ export interface TenantsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
   tenant?: T;
   isSuperAdmin?: T;
   updatedAt?: T;
@@ -1281,16 +1263,6 @@ export interface PagesSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
-  navigation?:
-    | T
-    | {
-        showInNavigation?: T;
-        navigationLabel?: T;
-        navigationOrder?: T;
-        showInFooter?: T;
-        footerColumn?: T;
-        footerOrder?: T;
-      };
   seo?:
     | T
     | {
@@ -1308,6 +1280,7 @@ export interface PagesSelect<T extends boolean = true> {
         canonicalUrl?: T;
         noIndex?: T;
         noFollow?: T;
+        hideFromSitemap?: T;
       };
   status?: T;
   updatedAt?: T;
@@ -1666,58 +1639,62 @@ export interface Home {
    */
   seo?: {
     /**
-     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
+     * Optimal: 50-60 characters. Leave empty for auto-generated title.
      */
     title?: string | null;
     /**
-     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
+     * Optimal: 150-160 characters. Appears in search results.
      */
     description?: string | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     ogTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     ogDescription?: string | null;
     /**
-     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     * Recommended: 1200x630px. Leave empty for default image.
      */
     ogImage?: (string | null) | Media;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     twitterTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     twitterDescription?: string | null;
     /**
-     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     * Recommended: 1200x675px. Leave empty to use Facebook Image.
      */
     twitterImage?: (string | null) | Media;
     twitterCard?: ('summary_large_image' | 'summary') | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     whatsappTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     whatsappDescription?: string | null;
     /**
-     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     * Optional: Specify a custom canonical URL for duplicate content.
      */
     canonicalUrl?: string | null;
     /**
-     * Verberg deze pagina van zoekmachines
+     * Hide this page from search engines
      */
     noIndex?: boolean | null;
     /**
-     * Volg links op deze pagina niet
+     * Do not follow links on this page
      */
     noFollow?: boolean | null;
+    /**
+     * Hide this page from the XML sitemap
+     */
+    hideFromSitemap?: boolean | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1769,58 +1746,62 @@ export interface Contact {
    */
   seo?: {
     /**
-     * Optimaal: 50-60 karakters. Laat leeg voor automatisch gegenereerde titel.
+     * Optimal: 50-60 characters. Leave empty for auto-generated title.
      */
     title?: string | null;
     /**
-     * Optimaal: 150-160 karakters. Verschijnt in zoekresultaten.
+     * Optimal: 150-160 characters. Appears in search results.
      */
     description?: string | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     ogTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     ogDescription?: string | null;
     /**
-     * Aanbevolen: 1200x630px. Laat leeg voor standaard afbeelding.
+     * Recommended: 1200x630px. Leave empty for default image.
      */
     ogImage?: (string | null) | Media;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     twitterTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     twitterDescription?: string | null;
     /**
-     * Aanbevolen: 1200x675px. Laat leeg om Facebook Image te gebruiken.
+     * Recommended: 1200x675px. Leave empty to use Facebook Image.
      */
     twitterImage?: (string | null) | Media;
     twitterCard?: ('summary_large_image' | 'summary') | null;
     /**
-     * Laat leeg om Meta Title te gebruiken.
+     * Leave empty to use Meta Title.
      */
     whatsappTitle?: string | null;
     /**
-     * Laat leeg om Meta Description te gebruiken.
+     * Leave empty to use Meta Description.
      */
     whatsappDescription?: string | null;
     /**
-     * Optioneel: Geef een aangepaste canonical URL op voor duplicate content.
+     * Optional: Specify a custom canonical URL for duplicate content.
      */
     canonicalUrl?: string | null;
     /**
-     * Verberg deze pagina van zoekmachines
+     * Hide this page from search engines
      */
     noIndex?: boolean | null;
     /**
-     * Volg links op deze pagina niet
+     * Do not follow links on this page
      */
     noFollow?: boolean | null;
+    /**
+     * Hide this page from the XML sitemap
+     */
+    hideFromSitemap?: boolean | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -1875,6 +1856,7 @@ export interface HomeSelect<T extends boolean = true> {
         canonicalUrl?: T;
         noIndex?: T;
         noFollow?: T;
+        hideFromSitemap?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1934,6 +1916,7 @@ export interface ContactSelect<T extends boolean = true> {
         canonicalUrl?: T;
         noIndex?: T;
         noFollow?: T;
+        hideFromSitemap?: T;
       };
   updatedAt?: T;
   createdAt?: T;
