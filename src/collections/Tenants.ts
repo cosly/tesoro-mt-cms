@@ -33,40 +33,17 @@ export const Tenants: CollectionConfig = {
   },
   hooks: {
     afterCreate: [
-      // Auto-create Theme Settings and Site Settings for new tenant
+      // Auto-create Site Settings (with theme defaults) for new tenant
       async ({ doc, req }) => {
         const { payload } = req
 
         try {
-          // Create default Theme Settings
-          await payload.create({
-            collection: 'theme-settings',
-            data: {
-              tenant: doc.id,
-              template: 'modern',
-              colors: {
-                primary: '#1E40AF',
-                secondary: '#64748B',
-                accent: '#F59E0B',
-                background: '#FFFFFF',
-              },
-              typography: {
-                headingFont: 'Montserrat',
-                bodyFont: 'Open Sans',
-              },
-              styling: {
-                borderRadius: 8,
-                buttonStyle: 'rounded',
-                shadowIntensity: 'subtle',
-              },
-            },
-          })
-
-          // Create default Site Settings
+          // Create default Site Settings with all defaults (general + theme)
           await payload.create({
             collection: 'site-settings',
             data: {
               tenant: doc.id,
+              // General settings defaults
               features: {
                 enableBlog: false,
                 enableTestimonials: true,
@@ -87,12 +64,29 @@ export const Tenants: CollectionConfig = {
                 maintenanceMode: false,
                 cookieConsent: true,
               },
+              // Theme settings defaults
+              template: 'modern',
+              colors: {
+                primary: '#1E40AF',
+                secondary: '#64748B',
+                accent: '#F59E0B',
+                background: '#FFFFFF',
+              },
+              typography: {
+                headingFont: 'Montserrat',
+                bodyFont: 'Open Sans',
+              },
+              styling: {
+                borderRadius: 8,
+                buttonStyle: 'rounded',
+                shadowIntensity: 'subtle',
+              },
             },
           })
 
-          console.log(`[Tenants] Auto-created settings for tenant: ${doc.name}`)
+          console.log(`[Tenants] Auto-created Site Settings for tenant: ${doc.name}`)
         } catch (error) {
-          console.error(`[Tenants] Failed to create settings for tenant ${doc.name}:`, error)
+          console.error(`[Tenants] Failed to create Site Settings for tenant ${doc.name}:`, error)
         }
 
         return doc
